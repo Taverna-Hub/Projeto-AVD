@@ -1,12 +1,26 @@
 # 🌦️ Pipeline de Dados Meteorológicos - INMET
 
-> *Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos em tempo real*
+> *Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos com foco em sensação térmica*
 
 ## 📋 Descrição Geral
 
-Este projeto foi desenvolvido como parte da disciplina **Análise e Visualização de Dados (2025.2)** da **CESAR School**, implementando um pipeline de Business Intelligence para dados meteorológicos do INMET (Instituto Nacional de Meteorologia).
+Este projeto foi desenvolvido como parte da disciplina **Análise e Visualização de Dados (2025.2)** da **CESAR School**, implementando um pipeline de Business Intelligence para dados meteorológicos do INMET (Instituto Nacional de Meteorologia) com ênfase especial na **previsão de sensação térmica**.
 
-O sistema coleta dados de estações meteorológicas de Pernambuco, processa e armazena as informações, aplica modelos de Machine Learning e disponibiliza dashboards interativos para análise e visualização dos dados.
+O sistema coleta dados de estações meteorológicas de Pernambuco, processa e armazena as informações, aplica modelos de Machine Learning para estimar a sensação térmica e disponibiliza dashboards interativos para análise e visualização dos dados.
+
+## 🎯 Objetivo Principal
+
+**Prever Sensação Térmica**: Estimar a sensação térmica percebida a partir de variáveis climáticas como temperatura, umidade e velocidade do vento, utilizando modelos de Machine Learning.
+
+### Variáveis Utilizadas
+- 🌡️ **Temperatura** (°C)
+- 💧 **Umidade** (%)
+- 💨 **Velocidade do Vento** (m/s)
+
+### Visualizações Principais
+- 📈 Curva real vs. prevista da sensação térmica
+- 🌳 Importância das variáveis na árvore de decisão
+- 🔍 Análise de resíduos e performance do modelo
 
 ## 🏗️ Arquitetura do Pipeline
 
@@ -26,13 +40,13 @@ graph TD
     style F fill:#ef5350
 ```
 
-### Fluxo de Dados
+### Fluxo de Dados para Sensação Térmica
 1. **Ingestão**: API REST coleta dados meteorológicos via FastAPI
 2. **Armazenamento**: Dados brutos salvos no MinIO (S3-compatible)
-3. **Processamento**: Estruturação e transformação no Snowflake
-4. **Análise**: Exploração e modelagem em Jupyter Notebooks
-5. **MLOps**: Registro e tracking de experimentos com MLFlow
-6. **Visualização**: Dashboards interativos no Trendz Analytics
+3. **Processamento**: Cálculo de sensação térmica e estruturação no Snowflake
+4. **Análise**: Feature engineering e modelagem em Jupyter Notebooks
+5. **MLOps**: Registro e tracking de experimentos de sensação térmica com MLFlow
+6. **Visualização**: Dashboards interativos com comparação real vs. previsto
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -40,9 +54,9 @@ graph TD
 |-----------|-------------|
 | **Backend** | FastAPI, Python 3.9+, Uvicorn |
 | **Armazenamento** | MinIO, Snowflake |
-| **Análise** | JupyterLab, Pandas, Scikit-learn |
+| **Análise** | JupyterLab, Pandas, Scikit-learn, NumPy |
 | **MLOps** | MLFlow |
-| **Visualização** | Trendz Analytics |
+| **Visualização** | Trendz Analytics, Matplotlib, Seaborn |
 | **Orquestração** | Docker, Docker Compose |
 | **Linguagens** | Python, SQL |
 
@@ -61,15 +75,17 @@ pipeline-meteorologico/
 │   └── Dockerfile
 ├── 📓 notebooks/
 │   ├── exploracao_dados.ipynb
-│   ├── modelagem_regressao.ipynb
+│   ├── modelagem_sensacao_termica.ipynb      # FOCO NO TEMA
+│   ├── importancia_variaveis.ipynb           # FOCO NO TEMA
 │   └── analise_temporal.ipynb
 ├── 🗃️ sql_scripts/
 │   ├── create_tables.sql
+│   ├── calculo_sensacao_termica.sql          # FOCO NO TEMA
 │   └── queries_analiticas.sql
 ├── 📈 trendz/
 │   └── Dockerfile
 ├── 📋 reports/
-│   └── documentacao_tecnica.md
+│   └── documentacao_sensacao_termica.md      # FOCO NO TEMA
 ├── 📄 README.md
 └── ⚖️ LICENSE
 ```
@@ -101,7 +117,7 @@ docker-compose ps
 | Serviço | URL | Porta | Descrição |
 |---------|-----|-------|-----------|
 | **FastAPI** | http://localhost:8000/docs | 8000 | API de ingestão de dados |
-| **JupyterLab** | http://localhost:8888 | 8888 | Ambiente de análise |
+| **JupyterLab** | http://localhost:8888 | 8888 | Ambiente de análise (senha: avd2025) |
 | **MLFlow** | http://localhost:5000 | 5000 | Tracking de experimentos |
 | **MinIO** | http://localhost:9000 | 9000 | Armazenamento de objetos |
 | **Trendz** | http://localhost:8080 | 8080 | Dashboards interativos |
@@ -122,57 +138,83 @@ docker-compose restart fastapi
 docker-compose exec jupyterlab bash
 ```
 
-## 🔄 Fluxo de Funcionamento
+## 🔄 Fluxo de Funcionamento para Sensação Térmica
 
-### 1. Coleta de Dados
+### 1. Coleta de Dados para Modelo
 ```python
-# Exemplo de requisição para ingestão
+# Exemplo de requisição para ingestão com variáveis de sensação térmica
 import requests
 
 payload = {
     "estacao": "A001",
     "data": "2025-01-15",
-    "temperatura": 28.5,
-    "umidade": 75,
-    "pressao": 1013.25
+    "temperatura": 28.5,      # Variável preditora
+    "umidade": 75,            # Variável preditora  
+    "velocidade_vento": 3.2,  # Variável preditora
+    "sensacao_termica": 30.1  # Variável alvo (para treinamento)
 }
 
 response = requests.post("http://localhost:8000/dados", json=payload)
 ```
 
-### 2. Processamento e Armazenamento
-- Dados validados via FastAPI
-- Armazenamento raw no MinIO
-- Estruturação dimensional no Snowflake
-- Transformações para análise
+### 2. Processamento Específico para Sensação Térmica
+- Cálculo de sensação térmica usando fórmula de Steadman
+- Feature engineering: interações entre temperatura e umidade
+- Normalização das variáveis climáticas
+- Split temporal para validação
 
-### 3. Modelagem Preditiva
-- Feature engineering para variáveis meteorológicas
-- Treinamento de modelos de regressão e classificação
-- Validação cruzada temporal
-- Deployment via MLFlow
+### 3. Modelagem Preditiva da Sensação Térmica
+- **Algoritmos**: Random Forest, XGBoost, Linear Regression
+- **Variáveis**: Temperatura, Umidade, Velocidade do Vento
+- **Métricas**: MAE, RMSE, R², MAPE
+- **Validação**: Time Series Split
 
-## 🤖 Modelagem e Análise
+## 🤖 Modelagem de Sensação Térmica
 
 ### Abordagens de Machine Learning
 
-| Técnica | Objetivo | Métricas |
-|---------|----------|----------|
-| **Regressão** | Previsão de temperatura | MAE, RMSE, R² |
-| **Classificação** | Previsão de chuva | Acurácia, F1-Score |
-| **Agrupamento** | Padrões climáticos | Silhouette Score |
+| Técnica | Objetivo | Métricas | Variáveis |
+|---------|----------|----------|-----------|
+| **Regressão Random Forest** | Previsão de sensação térmica | MAE, RMSE, R² | Temp, Umidade, Vento |
+| **Análise de Importância** | Rankear variáveis influentes | Feature Importance | Todas as features |
+| **Visualização** | Real vs. Previsto | Gráficos comparativos | Sensação térmica |
 
-## 📊 Dashboards e Visualizações
+### Exemplo de Código para Modelagem
+```python
+# Modelo de sensação térmica
+from sklearn.ensemble import RandomForestRegressor
 
-### Trendz Analytics
-- **Dashboard Principal**: Visão geral das condições meteorológicas
-- **Análise Temporal**: Tendências e padrões sazonais
-- **Alertas**: Notificações de condições extremas
-- **Previsões**: Resultados dos modelos de ML
+modelo_sensacao = RandomForestRegressor(
+    n_estimators=100,
+    max_depth=10,
+    random_state=42
+)
+
+# Variáveis para o modelo
+X = dados[['temperatura', 'umidade', 'velocidade_vento']]
+y = dados['sensacao_termica']
+
+modelo_sensacao.fit(X, y)
+```
+
+## 📊 Dashboards e Visualizações - Sensação Térmica
+
+### Trendz Analytics - Foco no Tema
+- **Dashboard Sensação Térmica**: Comparação real vs. prevista
+- **Importância das Variáveis**: Gráfico de importância da árvore
+- **Análise de Resíduos**: Distribuição dos erros de previsão
+- **Sensação por Condições**: Heatmaps de sensação vs. temperatura/umidade
+
+### Visualizações Específicas
+1. **Curva Real vs. Prevista**: Linhas sobrepostas mostrando acurácia do modelo
+2. **Importância na Árvore**: Bar plot com contribuição de cada variável
+3. **Matriz de Correlação**: Relação entre variáveis climáticas
+4. **Distribuição de Erros**: Histograma dos resíduos da previsão
 
 ### Acesso aos Dashboards
 1. Acesse http://localhost:8080
-2. Navegue pelos dashboards pré-configurados
+2. Navegue para o dashboard "Sensação Térmica"
+3. Explore as visualizações interativas
 
 ## 👥 Autores do Projeto
 <div align="center">
@@ -243,10 +285,12 @@ response = requests.post("http://localhost:8000/dados", json=payload)
 - **Professor Diego de Freitas**: Pelo suporte técnico e orientação
 - **INMET**: Pela disponibilização dos dados meteorológicos
 
+---
+
 <div align="center">
 
-**🌤️ Previsão do tempo, previsão do futuro**
+**🌡️ Previsão da sensação, compreensão da percepção**
 
-*CESAR School • 2025.2*
+*CESAR School • Análise e Visualização de Dados • 2025.2*
 
 </div>
