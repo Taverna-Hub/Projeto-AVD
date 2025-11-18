@@ -194,6 +194,7 @@ reports/*.draft
 *.pem
 *.key
 *.crt
+\[CESAR School] - AVD - Especificação de Projeto.pdf
 
 # arquivos gerados por sistemas CI/CD
 .github/
@@ -201,3 +202,4 @@ reports/*.draft
 
 # arquivos de snapshot (opcional)
 snapshot/
+
