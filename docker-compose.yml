@@ -5,7 +5,7 @@ services:
       dockerfile: fastapi/Dockerfile
     container_name: fastapi-app
     ports:
-      - "8080:8080"
+      - "8060:8060"
     environment:
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -17,7 +17,7 @@ services:
       - ./data:/app/data:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8060/health"]
       interval: 30s
       timeout: 10s
       retries: 3
