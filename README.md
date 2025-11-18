@@ -116,7 +116,7 @@ docker-compose ps
 
 | Serviço | URL | Porta | Descrição |
 |---------|-----|-------|-----------|
-| **FastAPI** | http://localhost:8000/docs | 8000 | API de ingestão de dados |
+| **FastAPI** | http://localhost:8060/docs | 8060 | API de ingestão de dados |
 | **JupyterLab** | http://localhost:8888 | 8888 | Ambiente de análise (senha: avd2025) |
 | **MLFlow** | http://localhost:5000 | 5000 | Tracking de experimentos |
 | **MinIO** | http://localhost:9000 | 9000 | Armazenamento de objetos |
