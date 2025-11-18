@@ -1,0 +1,203 @@
+########################
+# Sistema operacional
+########################
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+########################
+# Python
+########################
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# virtualenv
+.env
+.venv
+venv/
+ENV/
+env/
+
+# Pyenv
+.python-version
+
+# mypy
+.mypy_cache/
+
+# pytest
+.pytest_cache/
+
+# pipenv
+Pipfile.lock
+
+########################
+# Jupyter
+########################
+.ipynb_checkpoints/
+# opcional: se preferir não versionar saídas grandes dos notebooks
+# *.nbconvert.ipynb
+
+########################
+# Notebooks checkpoints & outputs (alternativa)
+########################
+# Ignore outputs generated pelo nbconvert ou executores
+# .nboutputs/
+
+########################
+# Docker
+########################
+# imagens e volumes locais (não versionar)
+docker-compose.override.yml
+**/docker-compose.override.yml
+docker-compose.*.yml
+**/docker-compose.*.yml
+*.tar
+**/volumes/
+
+# chaves e arquivos de ambiente usado para levantar containers
+.env.*
+.env
+
+########################
+# ML / Modelos / Artifacts
+########################
+# modelos binários, checkpoints e artefatos grandes
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.ckpt
+*.pt
+*.pth
+*.onnx
+models/
+artifacts/
+artifacts-*/
+mlruns/
+mlflow/
+
+# Se usar MLflow com armazenamento local
+mlruns/
+
+########################
+# MinIO / S3 / Credenciais
+########################
+# arquivos de credenciais locais e caches
+.aws/
+.credentials
+.s3cfg
+minio_data/
+*.minio
+
+########################
+# Snowflake / DB / Secrets
+########################
+# arquivos de configuração locais contendo credenciais
+*.env
+*.secret
+secrets/
+credentials/
+
+# arquivos de DB local
+*.db
+*.sqlite
+*.sqlite3
+pgdata/
+
+########################
+# Logs e temporários
+########################
+logs/
+*.log
+*.out
+*.tmp
+tmp/
+temp/
+
+########################
+# IDEs / Editores
+########################
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+*.iml
+out/
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+########################
+# Sistema de build / node (se houver front ou dashboards JS)
+########################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+########################
+# Arquivos de export / dados brutos (geralmente não versionar)
+########################
+# Ignore pastas de dados brutos e caches locais; mantenha exceções se for necessário
+/data/
+/data_raw/
+/data_processed/
+/downloads/
+
+# Arquivos CSVs/JSON/Parquet grandes
+*.csv
+*.parquet
+*.feather
+*.avro
+*.jsonl
+
+# Se preferir versionar amostras pequenas, crie uma pasta /data/sample/ e remova-a daqui
+
+########################
+# Relatórios e apresentações
+########################
+# NOTA: /reports deve conter o relatório final em PDF — NÃO IGNORAR essa pasta por padrão.
+# Se você tiver rascunhos ou arquivos temporários dentro de reports, ignore-os explicitamente.
+reports/tmp/
+reports/*.draft
+
+########################
+# Outros
+########################
+# certificados, chaves e arquivos sensíveis
+*.pem
+*.key
+*.crt
+
+# arquivos gerados por sistemas CI/CD
+.github/
+.github/workflows/*.local
+
+# arquivos de snapshot (opcional)
+snapshot/
