@@ -98,7 +98,10 @@ models/
 artifacts/
 artifacts-*/
 mlruns/
-mlflow/
+
+# MLflow artifacts (mas não o código/Dockerfile)
+mlflow/artifacts/
+mlflow/mlruns/
 
 # Se usar MLflow com armazenamento local
 mlruns/
