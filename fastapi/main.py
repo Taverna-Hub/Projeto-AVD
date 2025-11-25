@@ -3,11 +3,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .routers import upload, status
+from .services.mlflow_service import mlflow_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup: Inicializar MLflow
+    mlflow_service.initialize()
     yield
+    # Shutdown: cleanup se necessário
 
 
 app = FastAPI(

@@ -2,6 +2,7 @@
 Upload router for handling file uploads to S3.
 """
 import asyncio
+import time
 from typing import List, Dict
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ from pydantic import BaseModel
 from ..config import settings
 from ..services.file_reader import FileReader
 from ..services.s3_service import S3Service
+from ..services.mlflow_service import mlflow_service
 
 router = APIRouter()
 
@@ -64,9 +66,11 @@ async def upload_files_task(
         files: List of file dictionaries to upload
         s3_service: S3Service instance
     """
+    start_time = time.time()
     total_files = len(files)
     successful = 0
     failed = 0
+    total_size = 0
     
     upload_status[task_id] = UploadStatus(
         status="processing",
@@ -86,6 +90,9 @@ async def upload_files_task(
             
             if result["success"]:
                 successful += 1
+                # Adicionar tamanho do arquivo se disponível
+                if "size" in file_info:
+                    total_size += file_info["size"]
             else:
                 failed += 1
             
@@ -102,6 +109,18 @@ async def upload_files_task(
     # Mark as completed
     upload_status[task_id].status = "completed"
     upload_status[task_id].message = f"Upload completed: {successful} successful, {failed} failed"
+    
+    # Log no MLflow
+    duration = time.time() - start_time
+    mlflow_service.log_upload_operation(
+        operation_type="upload_background",
+        files_count=total_files,
+        success_count=successful,
+        failed_count=failed,
+        total_size_mb=total_size / (1024 * 1024),
+        duration_seconds=duration,
+        additional_params={"task_id": task_id}
+    )
 
 
 @router.post("/upload/all", response_model=Dict[str, str])
@@ -215,6 +234,8 @@ async def upload_all_files_sync(
     Use this endpoint if you want to wait for the upload to complete.
     For large numbers of files, prefer the async endpoint.
     """
+    start_time = time.time()
+    
     # Check if bucket exists
     if not s3_service.check_bucket_exists():
         raise HTTPException(
@@ -235,6 +256,7 @@ async def upload_all_files_sync(
     results = []
     successful = 0
     failed = 0
+    total_size = 0
     
     for file_info in files:
         result = s3_service.upload_file_with_structure(
@@ -249,8 +271,21 @@ async def upload_all_files_sync(
         
         if result["success"]:
             successful += 1
+            if "size" in file_info:
+                total_size += file_info["size"]
         else:
             failed += 1
+    
+    # Log no MLflow
+    duration = time.time() - start_time
+    mlflow_service.log_upload_operation(
+        operation_type="upload_sync_all",
+        files_count=len(files),
+        success_count=successful,
+        failed_count=failed,
+        total_size_mb=total_size / (1024 * 1024),
+        duration_seconds=duration
+    )
     
     return UploadResponse(
         total_files=len(files),

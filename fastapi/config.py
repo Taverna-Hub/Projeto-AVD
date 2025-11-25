@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     # S3 Prefix (optional, for organizing files in bucket)
     S3_PREFIX: str = "inmet-data"
     
+    # MLflow Configuration
+    MLFLOW_TRACKING_URI: str = "http://mlflow:5000"
+    MLFLOW_EXPERIMENT_NAME: str = "data-pipeline"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
