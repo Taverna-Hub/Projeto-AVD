@@ -1,0 +1,254 @@
+[
+  {
+    "name": "Petrolina",
+    "id": "7aa33e20-c9a9-11f0-8f30-2d8035a9f790",
+    "access_token": "aMEpTsBEQJcDkrNRQqel",
+    "station_code": "A307",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A307_PETROLINA_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A307_PETROLINA_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A307_PETROLINA_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A307_PETROLINA_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A307_PETROLINA_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Arco Verde",
+    "id": "ac456390-c9a9-11f0-8f30-2d8035a9f790",
+    "access_token": "omEsqZvQQIvSNDu6jfig",
+    "station_code": "A309",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A309_ARCO VERDE_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A309_ARCO VERDE_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A309_ARCO VERDE_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A309_ARCO VERDE_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A309_ARCO VERDE_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Garanhuns",
+    "id": "e3131520-c9a9-11f0-8f30-2d8035a9f790",
+    "access_token": "Lyvb2CVCWVUXnNIAWAgg",
+    "station_code": "A322",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A322_GARANHUNS_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A322_GARANHUNS_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A322_GARANHUNS_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A322_GARANHUNS_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A322_GARANHUNS_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Surubim",
+    "id": "1a75dac0-c9aa-11f0-8f30-2d8035a9f790",
+    "access_token": "6c3Ae0nqOPy1tyimvkD9",
+    "station_code": "A328",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A328_SURUBIM_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A328_SURUBIM_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A328_SURUBIM_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A328_SURUBIM_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A328_SURUBIM_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Cabrobo",
+    "id": "4f1a1ca0-c9aa-11f0-8f30-2d8035a9f790",
+    "access_token": "fYkBgSvAlLjXYLRpEgUA",
+    "station_code": "A329",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A329_CABROBO_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A329_CABROBO_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A329_CABROBO_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A329_CABROBO_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A329_CABROBO_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Caruaru",
+    "id": "85e201d0-c9aa-11f0-8f30-2d8035a9f790",
+    "access_token": "FHALAstSTVHaRWverKhV",
+    "station_code": "A341",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A341_CARUARU_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A341_CARUARU_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A341_CARUARU_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A341_CARUARU_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A341_CARUARU_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Ibimirim",
+    "id": "bd0f3880-c9aa-11f0-8f30-2d8035a9f790",
+    "access_token": "E0uERUPMRpwp2PJXRMVY",
+    "station_code": "A349",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A349_IBIMIRIM_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A349_IBIMIRIM_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A349_IBIMIRIM_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A349_IBIMIRIM_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A349_IBIMIRIM_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Serra Talhada",
+    "id": "f2a70220-c9aa-11f0-8f30-2d8035a9f790",
+    "access_token": "VYWgbXdhEqBeALuuyesn",
+    "station_code": "A350",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A350_SERRA TALHADA_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A350_SERRA TALHADA_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A350_SERRA TALHADA_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A350_SERRA TALHADA_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A350_SERRA TALHADA_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Floresta",
+    "id": "285c8cf0-c9ab-11f0-8f30-2d8035a9f790",
+    "access_token": "warGkXVTK0txjfcEHxW1",
+    "station_code": "A351",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A351_FLORESTA_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A351_FLORESTA_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A351_FLORESTA_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A351_FLORESTA_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A351_FLORESTA_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Palmares",
+    "id": "5da2db30-c9ab-11f0-8f30-2d8035a9f790",
+    "access_token": "uzUMjYAXUb176QeKLvrn",
+    "station_code": "A357",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A357_PALMARES_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A357_PALMARES_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A357_PALMARES_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A357_PALMARES_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A357_PALMARES_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Ouricuri",
+    "id": "93cafdf0-c9ab-11f0-8f30-2d8035a9f790",
+    "access_token": "r0tJkIyX4TwIR9YfmyKr",
+    "station_code": "A366",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A366_OURICURI_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A366_OURICURI_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A366_OURICURI_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A366_OURICURI_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A366_OURICURI_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  },
+  {
+    "name": "Salgueiro",
+    "id": "c92cc370-c9ab-11f0-8f30-2d8035a9f790",
+    "access_token": "W8cwKxfLm0rSG9E2p4rX",
+    "station_code": "A370",
+    "years": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "csv_files": [
+      "inmet-data/inmet-data/2020/INMET_NE_PE_A370_SALGUEIRO_01-01-2020_A_31-12-2020.CSV",
+      "inmet-data/inmet-data/2021/INMET_NE_PE_A370_SALGUEIRO_01-01-2021_A_31-12-2021.CSV",
+      "inmet-data/inmet-data/2022/INMET_NE_PE_A370_SALGUEIRO_01-01-2022_A_31-12-2022.CSV",
+      "inmet-data/inmet-data/2023/INMET_NE_PE_A370_SALGUEIRO_01-01-2023_A_31-12-2023.CSV",
+      "inmet-data/inmet-data/2024/INMET_NE_PE_A370_SALGUEIRO_01-01-2024_A_31-12-2024.CSV"
+    ],
+    "records_sent": 43848
+  }
+]
