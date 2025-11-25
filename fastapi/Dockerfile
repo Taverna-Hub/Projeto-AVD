@@ -20,9 +20,9 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 COPY fastapi/ /app/src/
-COPY data/ /app/data/
 
 RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/data && \
     chown -R appuser:appuser /app
 
 USER appuser

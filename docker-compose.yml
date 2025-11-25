@@ -12,6 +12,7 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./sql_scripts:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     networks:
@@ -25,18 +26,25 @@ services:
     ports:
       - "9090:9090"
       - "1883:1883"
-      - "7070:7070"
+      - "7071:7070"
       - "5683-5688:5683-5688/udp"
     environment:
       TB_QUEUE_TYPE: in-memory
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thingsboard
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      TB_SECURITY_JWT_TOKEN_SIGNING_KEY: ${JWT_TOKEN_SIGNING_KEY}
     volumes:
       - thingsboard-data:/data
       - thingsboard-logs:/var/log/thingsboard
     depends_on:
       - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/9090' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     networks:
       - app-network
 
@@ -53,11 +61,14 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       TB_API_URL: http://thingsboard:9090
       TRENDZ_LICENSE_INSTANCE_DATA_FILE: /data/license.data
+      JWT_TOKEN_SIGNING_KEY: ${JWT_TOKEN_SIGNING_KEY}
     volumes:
       - trendz-data:/data
     depends_on:
-      - postgres
-      - thingsboard
+      postgres:
+        condition: service_started
+      thingsboard:
+        condition: service_healthy
     networks:
       - app-network
 
