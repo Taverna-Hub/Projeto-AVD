@@ -1,0 +1,23 @@
+# Data Manipulation and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Time Series Analysis
+statsmodels>=0.14.0
+
+# Utilities
+python-dateutil>=2.8.0
+
+# Notebook Environment
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# Model Persistence
+joblib>=1.3.0
