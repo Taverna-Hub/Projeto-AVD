@@ -137,11 +137,50 @@ services:
       - app-network
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://postgres:postgres@postgres:5432/mlflow --default-artifact-root /mlflow/artifacts
 
+  # NEON Database
+  neon:
+    image: postgres:15
+    container_name: neon
+    environment:
+      POSTGRES_USER: neon_user
+      POSTGRES_PASSWORD: neon_password
+      POSTGRES_DB: meteorologia
+    ports:
+      - "5433:5432"  # Porta externa alterada para evitar conflito com o serviço 'postgres'
+    volumes:
+      - neon_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # NEON Pipeline
+  neon_pipeline:
+    build:
+      context: ./scripts/python
+      dockerfile: Dockerfile
+    container_name: neon_pipeline
+    depends_on:
+      - neon
+    networks:
+      - app-network
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - S3_PREFIX=${S3_PREFIX}
+      - NEON_USER=${NEON_USER}
+      - NEON_PASSWORD=${NEON_PASSWORD}
+      - NEON_DB=${NEON_DB}
+      - NEON_HOST=${NEON_HOST}
+      - NEON_PORT=${NEON_PORT}
+      - PYTHONUNBUFFERED=1
+
 volumes:
   postgres-data:
   thingsboard-data:
   thingsboard-logs:
   trendz-data:
+  neon_data:
 
 networks:
   app-network:
