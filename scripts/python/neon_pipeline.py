@@ -1,5 +1,6 @@
 import boto3
 import psycopg2
+from psycopg2.extras import execute_values
 import csv
 from io import StringIO
 from dotenv import load_dotenv
@@ -19,18 +20,20 @@ s3_client = boto3.client(
     region_name=os.getenv("AWS_REGION")
 )
 
-# Configurações do NEON
-conn = psycopg2.connect(
-    dbname=os.getenv("NEON_DB"),
-    user=os.getenv("NEON_USER"),
-    password=os.getenv("NEON_PASSWORD"),
-    host=os.getenv("NEON_HOST"),
-    port=os.getenv("NEON_PORT")
-)
+# Função para obter conexão com o banco
+def get_db_connection():
+    return psycopg2.connect(
+        dbname=os.getenv("NEON_DB"),
+        user=os.getenv("NEON_USER"),
+        password=os.getenv("NEON_PASSWORD"),
+        host=os.getenv("NEON_HOST"),
+        port=os.getenv("NEON_PORT")
+    )
 
 # Função para inicializar o banco de dados
 def initialize_database():
     """Cria as tabelas se não existirem"""
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         # Verificar se a tabela dados_meteorologicos existe
@@ -161,10 +164,12 @@ def initialize_database():
         raise
     finally:
         cursor.close()
+        conn.close()
 
 # Função para verificar se arquivo já foi processado
 def arquivo_ja_processado(arquivo_s3):
     """Verifica se o arquivo já foi processado com sucesso"""
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -178,10 +183,12 @@ def arquivo_ja_processado(arquivo_s3):
         return False
     finally:
         cursor.close()
+        conn.close()
 
 # Função para registrar arquivo processado
 def registrar_arquivo_processado(arquivo_s3, registros_inseridos, registros_atualizados, status):
     """Registra ou atualiza o processamento de um arquivo"""
+    conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -201,6 +208,7 @@ def registrar_arquivo_processado(arquivo_s3, registros_inseridos, registros_atua
         conn.rollback()
     finally:
         cursor.close()
+        conn.close()
 
 # Função para listar objetos no S3
 def list_s3_objects(bucket_name, prefix):
@@ -225,109 +233,131 @@ def extract_from_s3(bucket_name, object_name):
 
 # Função para carregar dados no NEON
 def load_to_neon(data, arquivo_s3):
-    print("Carregando dados no NEON...")
+    print("Carregando dados no NEON (Modo Batch)...")
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     lines = data.splitlines()
     estacao = None
     header_found = False
     
-    count_inserted = 0
-    count_updated = 0
+    # Buffer para batch insert
+    batch_rows = []
+    BATCH_SIZE = 1000  # Envia 1000 linhas por vez
     
-    for line in lines:
-        # Extract station name from metadata
-        if line.startswith("ESTACAO:"):
-            parts = line.split(";")
-            if len(parts) > 1:
-                estacao = parts[1].strip()
-            continue
+    total_processed = 0
+    
+    try:
+        for line in lines:
+            # Extract station name from metadata
+            if line.startswith("ESTACAO:"):
+                parts = line.split(";")
+                if len(parts) > 1:
+                    estacao = parts[1].strip()
+                continue
+                
+            # Skip metadata until header
+            if not header_found:
+                if line.upper().startswith("DATA;HORA UTC"):
+                    header_found = True
+                continue
+                
+            # Process data rows
+            row = line.split(";")
+            if len(row) < 19: # Ensure enough columns
+                continue
+                
+            # Map columns
+            # Data: index 0
+            # Hora: index 1
+            # Temperatura: index 7
+            # Umidade: index 15
+            # Velocidade Vento: index 18
             
-        # Skip metadata until header
-        if not header_found:
-            if line.upper().startswith("DATA;HORA UTC"):
-                header_found = True
-            continue
+            data_medicao = row[0]
+            hora_medicao = row[1]  
             
-        # Process data rows
-        row = line.split(";")
-        if len(row) < 19: # Ensure enough columns
-            continue
-            
-        # Map columns
-        # Data: index 0
-        # Hora: index 1
-        # Temperatura: index 7
-        # Umidade: index 15
-        # Velocidade Vento: index 18
-        
-        data_medicao = row[0]
-        hora_medicao = row[1]  
-        
-        # Convert date format
-        try:
-            # Clean date format YYYY/MM/DD to YYYY-MM-DD
-            if "/" in data_medicao:
-                data_medicao = data_medicao.replace("/", "-")
-            
-            # Parse date
-            data_obj = datetime.strptime(data_medicao, "%Y-%m-%d").date()
-        except (ValueError, IndexError) as e:
-            print(f"⚠ Erro ao processar data: {data_medicao} - {e}")
-            continue
-        
-        def parse_float(value):
-            if not value:
-                return None
+            # Convert date format
             try:
-                return float(value.replace(",", "."))
-            except ValueError:
-                return None
+                # Clean date format YYYY/MM/DD to YYYY-MM-DD
+                if "/" in data_medicao:
+                    data_medicao = data_medicao.replace("/", "-")
+                
+                # Parse date
+                data_obj = datetime.strptime(data_medicao, "%Y-%m-%d").date()
+            except (ValueError, IndexError) as e:
+                # print(f"⚠ Erro ao processar data: {data_medicao} - {e}")
+                continue
+            
+            def parse_float(value):
+                if not value:
+                    return None
+                try:
+                    return float(value.replace(",", "."))
+                except ValueError:
+                    return None
 
-        temperatura = parse_float(row[7])
-        umidade = parse_float(row[15])
-        velocidade_vento = parse_float(row[18])
-        
-        try:
-            # UPSERT: Insere ou atualiza se já existir
-            cursor.execute("""
+            temperatura = parse_float(row[7])
+            umidade = parse_float(row[15])
+            velocidade_vento = parse_float(row[18])
+            
+            # Adicionar à lista de batch (tupla com os dados)
+            batch_rows.append((
+                estacao, 
+                data_obj, 
+                hora_medicao, 
+                temperatura, 
+                umidade, 
+                velocidade_vento, 
+                datetime.now()
+            ))
+            
+            # Se o buffer encheu, executa o batch
+            if len(batch_rows) >= BATCH_SIZE:
+                execute_values(cursor, """
+                    INSERT INTO dados_meteorologicos 
+                        (estacao, data, hora, temperatura, umidade, velocidade_vento, updated_at) 
+                    VALUES %s
+                    ON CONFLICT (estacao, data, hora) 
+                    DO UPDATE SET 
+                        temperatura = EXCLUDED.temperatura,
+                        umidade = EXCLUDED.umidade,
+                        velocidade_vento = EXCLUDED.velocidade_vento,
+                        updated_at = EXCLUDED.updated_at
+                """, batch_rows)
+                conn.commit()
+                total_processed += len(batch_rows)
+                print(f"  ✓ Processados: {total_processed} linhas...")
+                batch_rows = [] # Limpa o buffer
+
+        # Processar o restante das linhas que sobraram no buffer
+        if batch_rows:
+            execute_values(cursor, """
                 INSERT INTO dados_meteorologicos 
                     (estacao, data, hora, temperatura, umidade, velocidade_vento, updated_at) 
-                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                VALUES %s
                 ON CONFLICT (estacao, data, hora) 
                 DO UPDATE SET 
                     temperatura = EXCLUDED.temperatura,
                     umidade = EXCLUDED.umidade,
                     velocidade_vento = EXCLUDED.velocidade_vento,
-                    updated_at = CURRENT_TIMESTAMP
-                RETURNING (xmax = 0) AS inserted;
-            """, (estacao, data_obj, hora_medicao, temperatura, umidade, velocidade_vento))
-            
-            result = cursor.fetchone()
-            is_insert = result[0] if result else True
-            
+                    updated_at = EXCLUDED.updated_at
+            """, batch_rows)
             conn.commit()
-            
-            if is_insert:
-                count_inserted += 1
-            else:
-                count_updated += 1
-            
-            total = count_inserted + count_updated
-            if total % 100 == 0:
-                print(f"  ✓ Processados: {total} (Inseridos: {count_inserted}, Atualizados: {count_updated})")
-                
-        except Exception as e:
-            print(f"  ✗ Erro ao processar registro: {e}")
-            conn.rollback()
-            continue
+            total_processed += len(batch_rows)
 
-    cursor.close()
+    except Exception as e:
+        print(f"  ✗ Erro ao processar batch: {e}")
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
     
     # Registrar arquivo como processado
-    registrar_arquivo_processado(arquivo_s3, count_inserted, count_updated, 'sucesso')
+    registrar_arquivo_processado(arquivo_s3, total_processed, 0, 'sucesso')
     
-    print(f"✓ Arquivo processado! Inseridos: {count_inserted}, Atualizados: {count_updated}, Total: {count_inserted + count_updated}")
+    print(f"✓ Arquivo processado! Total de linhas: {total_processed}")
 
 # Pipeline principal
 def main():
