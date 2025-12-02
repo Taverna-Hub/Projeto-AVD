@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .routers import upload, status
+from .routers import upload, status, processed
 from .services.mlflow_service import mlflow_service
 
 
@@ -23,6 +23,7 @@ app = FastAPI(
 
 app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
 app.include_router(status.router, prefix="/api/v1", tags=["status"])
+app.include_router(processed.router, prefix="/api/v1", tags=["processed"])
 
 @app.get("/")
 async def root():
@@ -33,6 +34,8 @@ async def root():
             "upload_all": "/api/v1/upload/all",
             "upload_year": "/api/v1/upload/year/{year}",
             "status": "/api/v1/status",
+            "processed_pipeline": "/api/v1/processed/pipeline",
+            "processed_health": "/api/v1/processed/health",
         },
     }
 

@@ -2,6 +2,7 @@
 Configuration settings for the FastAPI application.
 """
 from pathlib import Path
+from typing import Optional
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -24,6 +25,14 @@ class Settings(BaseSettings):
     # MLflow Configuration
     MLFLOW_TRACKING_URI: str = "http://mlflow:5000"
     MLFLOW_EXPERIMENT_NAME: str = "data-pipeline"
+    
+    # ThingsBoard Configuration
+    THINGSBOARD_URL: str = "http://thingsboard:9090"
+    THINGSBOARD_USERNAME: Optional[str] = None
+    THINGSBOARD_PASSWORD: Optional[str] = None
+    
+    # Trendz Configuration
+    TRENDZ_URL: str = "http://trendz:8888"
     
     class Config:
         env_file = ".env"
