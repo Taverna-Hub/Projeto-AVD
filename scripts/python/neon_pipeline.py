@@ -7,7 +7,7 @@ import os
 import sys
 
 # Carregar variáveis de ambiente do arquivo .env
-load_dotenv()
+load_dotenv(override=True)
 
 # Configurações do AWS S3
 s3_client = boto3.client(
