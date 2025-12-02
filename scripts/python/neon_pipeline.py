@@ -5,6 +5,8 @@ from io import StringIO
 from dotenv import load_dotenv
 import os
 import sys
+from datetime import datetime
+import hashlib
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv(override=True)
@@ -25,6 +27,180 @@ conn = psycopg2.connect(
     host=os.getenv("NEON_HOST"),
     port=os.getenv("NEON_PORT")
 )
+
+# Função para inicializar o banco de dados
+def initialize_database():
+    """Cria as tabelas se não existirem"""
+    cursor = conn.cursor()
+    try:
+        # Verificar se a tabela dados_meteorologicos existe
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'dados_meteorologicos'
+            );
+        """)
+        tabela_existe = cursor.fetchone()[0]
+        
+        if not tabela_existe:
+            print(" Criando tabela dados_meteorologicos...")
+            cursor.execute("""
+                CREATE TABLE dados_meteorologicos (
+                    id SERIAL PRIMARY KEY,
+                    estacao VARCHAR(50),
+                    data DATE,
+                    hora VARCHAR(10),
+                    temperatura FLOAT,
+                    umidade FLOAT,
+                    velocidade_vento FLOAT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(estacao, data, hora)
+                );
+            """)
+            print("✓ Tabela dados_meteorologicos criada!")
+        else:
+            print("✓ Tabela dados_meteorologicos já existe")
+            
+            # Verificar e adicionar coluna hora se não existir
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns 
+                    WHERE table_name = 'dados_meteorologicos' 
+                    AND column_name = 'hora'
+                );
+            """)
+            coluna_hora_existe = cursor.fetchone()[0]
+            
+            if not coluna_hora_existe:
+                print(" Adicionando coluna hora...")
+                cursor.execute("""
+                    ALTER TABLE dados_meteorologicos ADD COLUMN hora VARCHAR(10);
+                """)
+                print("✓ Coluna hora adicionada!")
+            
+            # Verificar e adicionar coluna updated_at se não existir
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns 
+                    WHERE table_name = 'dados_meteorologicos' 
+                    AND column_name = 'updated_at'
+                );
+            """)
+            coluna_updated_existe = cursor.fetchone()[0]
+            
+            if not coluna_updated_existe:
+                print(" Adicionando coluna updated_at...")
+                cursor.execute("""
+                    ALTER TABLE dados_meteorologicos ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+                """)
+                print("✓ Coluna updated_at adicionada!")
+            
+            # Verificar e adicionar constraint UNIQUE se não existir
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.table_constraints 
+                    WHERE table_name = 'dados_meteorologicos' 
+                    AND constraint_name = 'dados_meteorologicos_estacao_data_hora_key'
+                );
+            """)
+            constraint_existe = cursor.fetchone()[0]
+            
+            if not constraint_existe:
+                print(" Adicionando constraint UNIQUE(estacao, data, hora)...")
+                cursor.execute("""
+                    ALTER TABLE dados_meteorologicos 
+                    ADD CONSTRAINT dados_meteorologicos_estacao_data_hora_key 
+                    UNIQUE(estacao, data, hora);
+                """)
+                print("✓ Constraint UNIQUE adicionada!")
+        
+        # Verificar se a tabela arquivos_processados existe
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'arquivos_processados'
+            );
+        """)
+        tabela_arquivos_existe = cursor.fetchone()[0]
+        
+        if not tabela_arquivos_existe:
+            print(" Criando tabela arquivos_processados...")
+            cursor.execute("""
+                CREATE TABLE arquivos_processados (
+                    id SERIAL PRIMARY KEY,
+                    arquivo_s3 VARCHAR(500) UNIQUE,
+                    data_processamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    registros_inseridos INTEGER DEFAULT 0,
+                    registros_atualizados INTEGER DEFAULT 0,
+                    status VARCHAR(20)
+                );
+            """)
+            print("✓ Tabela arquivos_processados criada!")
+        else:
+            print("✓ Tabela arquivos_processados já existe")
+        
+        # Criar índices
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_estacao_data 
+            ON dados_meteorologicos(estacao, data);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_arquivo 
+            ON arquivos_processados(arquivo_s3);
+        """)
+        
+        conn.commit()
+        print("✓ Banco de dados inicializado com sucesso!")
+    except Exception as e:
+        print(f"✗ Erro ao inicializar banco de dados: {e}")
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+
+# Função para verificar se arquivo já foi processado
+def arquivo_ja_processado(arquivo_s3):
+    """Verifica se o arquivo já foi processado com sucesso"""
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT status FROM arquivos_processados 
+            WHERE arquivo_s3 = %s AND status = 'sucesso'
+        """, (arquivo_s3,))
+        resultado = cursor.fetchone()
+        return resultado is not None
+    except Exception as e:
+        print(f"✗ Erro ao verificar arquivo: {e}")
+        return False
+    finally:
+        cursor.close()
+
+# Função para registrar arquivo processado
+def registrar_arquivo_processado(arquivo_s3, registros_inseridos, registros_atualizados, status):
+    """Registra ou atualiza o processamento de um arquivo"""
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO arquivos_processados 
+                (arquivo_s3, registros_inseridos, registros_atualizados, status)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (arquivo_s3) 
+            DO UPDATE SET 
+                data_processamento = CURRENT_TIMESTAMP,
+                registros_inseridos = EXCLUDED.registros_inseridos,
+                registros_atualizados = EXCLUDED.registros_atualizados,
+                status = EXCLUDED.status;
+        """, (arquivo_s3, registros_inseridos, registros_atualizados, status))
+        conn.commit()
+    except Exception as e:
+        print(f"✗ Erro ao registrar arquivo: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
 
 # Função para listar objetos no S3
 def list_s3_objects(bucket_name, prefix):
@@ -48,7 +224,7 @@ def extract_from_s3(bucket_name, object_name):
         return content.decode('latin-1')
 
 # Função para carregar dados no NEON
-def load_to_neon(data):
+def load_to_neon(data, arquivo_s3):
     print("Carregando dados no NEON...")
     cursor = conn.cursor()
     
@@ -57,6 +233,7 @@ def load_to_neon(data):
     header_found = False
     
     count_inserted = 0
+    count_updated = 0
     
     for line in lines:
         # Extract station name from metadata
@@ -79,14 +256,25 @@ def load_to_neon(data):
             
         # Map columns
         # Data: index 0
+        # Hora: index 1
         # Temperatura: index 7
         # Umidade: index 15
         # Velocidade Vento: index 18
         
         data_medicao = row[0]
-        # Convert YYYY/MM/DD to YYYY-MM-DD
-        if "/" in data_medicao:
-            data_medicao = data_medicao.replace("/", "-")
+        hora_medicao = row[1]  
+        
+        # Convert date format
+        try:
+            # Clean date format YYYY/MM/DD to YYYY-MM-DD
+            if "/" in data_medicao:
+                data_medicao = data_medicao.replace("/", "-")
+            
+            # Parse date
+            data_obj = datetime.strptime(data_medicao, "%Y-%m-%d").date()
+        except (ValueError, IndexError) as e:
+            print(f"⚠ Erro ao processar data: {data_medicao} - {e}")
+            continue
         
         def parse_float(value):
             if not value:
@@ -99,17 +287,47 @@ def load_to_neon(data):
         temperatura = parse_float(row[7])
         umidade = parse_float(row[15])
         velocidade_vento = parse_float(row[18])
-        sensacao_termica = None # Not available in CSV
         
-        cursor.execute(
-            "INSERT INTO dados_meteorologicos (estacao, data, temperatura, umidade, velocidade_vento, sensacao_termica) VALUES (%s, %s, %s, %s, %s, %s)",
-            (estacao, data_medicao, temperatura, umidade, velocidade_vento, sensacao_termica)
-        )
-        count_inserted += 1
+        try:
+            # UPSERT: Insere ou atualiza se já existir
+            cursor.execute("""
+                INSERT INTO dados_meteorologicos 
+                    (estacao, data, hora, temperatura, umidade, velocidade_vento, updated_at) 
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (estacao, data, hora) 
+                DO UPDATE SET 
+                    temperatura = EXCLUDED.temperatura,
+                    umidade = EXCLUDED.umidade,
+                    velocidade_vento = EXCLUDED.velocidade_vento,
+                    updated_at = CURRENT_TIMESTAMP
+                RETURNING (xmax = 0) AS inserted;
+            """, (estacao, data_obj, hora_medicao, temperatura, umidade, velocidade_vento))
+            
+            result = cursor.fetchone()
+            is_insert = result[0] if result else True
+            
+            conn.commit()
+            
+            if is_insert:
+                count_inserted += 1
+            else:
+                count_updated += 1
+            
+            total = count_inserted + count_updated
+            if total % 100 == 0:
+                print(f"  ✓ Processados: {total} (Inseridos: {count_inserted}, Atualizados: {count_updated})")
+                
+        except Exception as e:
+            print(f"  ✗ Erro ao processar registro: {e}")
+            conn.rollback()
+            continue
 
-    conn.commit()
     cursor.close()
-    print(f"Dados carregados com sucesso no NEON! Total inserido: {count_inserted}")
+    
+    # Registrar arquivo como processado
+    registrar_arquivo_processado(arquivo_s3, count_inserted, count_updated, 'sucesso')
+    
+    print(f"✓ Arquivo processado! Inseridos: {count_inserted}, Atualizados: {count_updated}, Total: {count_inserted + count_updated}")
 
 # Pipeline principal
 def main():
@@ -120,14 +338,46 @@ def main():
         print("Erro: Variáveis de ambiente AWS_BUCKET_NAME ou S3_PREFIX não configuradas.")
         sys.exit(1)
 
-    print(f"Listando objetos no bucket {bucket_name} com prefixo {prefix}...")
+    # Inicializar banco de dados (criar tabelas)
+    print("=== Inicializando banco de dados ===")
+    initialize_database()
+    
+    print(f"\n=== Listando objetos no bucket {bucket_name} com prefixo {prefix} ===")
     objects = list_s3_objects(bucket_name, prefix)
     
+    total_arquivos = len(objects)
+    processados = 0
+    ignorados = 0
+    
     # Processar cada objeto
-    for object_name in objects:
-        print(f"Processando objeto: {object_name}")
-        data = extract_from_s3(bucket_name, object_name)
-        load_to_neon(data)
+    for idx, object_name in enumerate(objects, 1):
+        print(f"\n[{idx}/{total_arquivos}] Verificando arquivo: {object_name}")
+        
+        # Verificar se arquivo já foi processado
+        if arquivo_ja_processado(object_name):
+            print(f"  ⏭ Arquivo já processado anteriormente. Pulando...")
+            ignorados += 1
+            continue
+        
+        try:
+            print(f"  📥 Extraindo dados do S3...")
+            data = extract_from_s3(bucket_name, object_name)
+            
+            print(f"  💾 Carregando no Neon...")
+            load_to_neon(data, object_name)
+            
+            processados += 1
+        except Exception as e:
+            print(f"  ✗ Erro ao processar arquivo: {e}")
+            registrar_arquivo_processado(object_name, 0, 0, 'erro')
+            continue
+    
+    print(f"\n{'='*60}")
+    print(f"Pipeline concluído!")
+    print(f"  Total de arquivos encontrados: {total_arquivos}")
+    print(f"  Arquivos processados: {processados}")
+    print(f"  Arquivos ignorados (já processados): {ignorados}")
+    print(f"{'='*60}")
 
 if __name__ == "__main__":
     main()
