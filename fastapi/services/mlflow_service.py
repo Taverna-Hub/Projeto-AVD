@@ -5,6 +5,7 @@ Fornece funções para tracking de experimentos, logging de métricas e parâmet
 
 import mlflow
 import os
+from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 import logging
@@ -228,6 +229,53 @@ class MLflowService:
                 
         except Exception as e:
             logger.error(f"Erro ao registrar operação de upload: {e}")
+    
+    def log_imputation_run(
+        self,
+        station_name: str,
+        metrics: Dict[str, float],
+        params: Dict[str, Any],
+        artifacts: Optional[Dict[str, str]] = None
+    ):
+        """
+        Registra uma run de imputação no MLflow.
+        
+        Args:
+            station_name: Nome da estação
+            metrics: Métricas da imputação (RMSE, MAE, R2, etc)
+            params: Parâmetros do modelo
+            artifacts: Caminhos de artifacts para registrar (plot, metrics_file, etc)
+        """
+        if not self._initialized:
+            self.initialize()
+        
+        try:
+            run_name = f"imputation_{station_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            with mlflow.start_run(run_name=run_name):
+                # Tags
+                mlflow.set_tag("pipeline", "data_imputation")
+                mlflow.set_tag("station", station_name)
+                mlflow.set_tag("station_name", station_name)
+                mlflow.set_tag("timestamp", datetime.now().isoformat())
+                mlflow.set_tag("type", "imputation")
+                
+                # Parâmetros
+                mlflow.log_params(params)
+                
+                # Métricas
+                mlflow.log_metrics(metrics)
+                
+                # Artifacts
+                if artifacts:
+                    for artifact_name, artifact_path in artifacts.items():
+                        if artifact_path and Path(artifact_path).exists():
+                            mlflow.log_artifact(artifact_path, artifact_name)
+                
+                logger.info(f"Run de imputação registrada: {station_name}")
+                
+        except Exception as e:
+            logger.error(f"Erro ao registrar run de imputação: {e}")
 
 
 # Instância global do serviço
