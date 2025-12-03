@@ -101,7 +101,9 @@ services:
 
   # JupyterLab
   jupyterlab:
-    image: jupyter/datascience-notebook:latest
+    build:
+      context: .
+      dockerfile: jupyterlab/Dockerfile
     container_name: jupyterlab
     restart: unless-stopped
     ports:
@@ -109,6 +111,7 @@ services:
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./jupyterlab:/home/jovyan/jupyterlab
+      - ./fastapi:/home/jovyan/fastapi
     environment:
       JUPYTER_ENABLE_LAB: "yes"
       GRANT_SUDO: "yes"

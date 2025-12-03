@@ -59,7 +59,8 @@ Thumbs.db
 # Other project directories (if not needed)
 jupyterlab/
 mlflow/
-notebooks/
+notebooks/*
+!notebooks/requirements.txt
 reports/
 sql_scripts/
 trendz/
