@@ -206,3 +206,5 @@ reports/*.draft
 # arquivos de snapshot (opcional)
 snapshot/
 
+# custom
+02_imputacao_dados_old.ipynb
