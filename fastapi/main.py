@@ -5,7 +5,7 @@ import logging
 
 from fastapi import FastAPI
 
-from .routers import upload, status, processed
+from .routers import upload, status, processed, devices
 from .services.mlflow_monitor import router as mlflow_sync_router, mlflow_monitor
 from .services.mlflow_service import mlflow_service
 from .services.thingsboard_service import thingsboard_service
@@ -90,8 +90,8 @@ app = FastAPI(
 app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
 app.include_router(status.router, prefix="/api/v1", tags=["status"])
 app.include_router(processed.router, prefix="/api/v1", tags=["processed"])
+app.include_router(devices.router, prefix="/api/v1", tags=["devices"])
 app.include_router(mlflow_sync_router, prefix="/api/v1", tags=["mlflow-sync"])
-
 @app.get("/")
 async def root():
     return {
@@ -106,6 +106,11 @@ async def root():
             "mlflow_sync_start": "/api/v1/mlflow-sync/start",
             "mlflow_sync_status": "/api/v1/mlflow-sync/status",
             "mlflow_sync_now": "/api/v1/mlflow-sync/sync-now",
+            "devices_setup": "/api/v1/devices/setup",
+            "devices_list_stations": "/api/v1/devices/estacoes",
+            "devices_send_telemetry": "/api/v1/devices/{estacao}/telemetria/enviar",
+            "devices_send_all_telemetry": "/api/v1/devices/telemetria/enviar-todas",
+            "devices_metadata": "/api/v1/devices/metadados/{estacao}",
         },
     }
 

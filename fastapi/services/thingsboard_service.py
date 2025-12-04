@@ -32,6 +32,12 @@ class ThingsBoardService:
         self._authenticated = False
         self.jwt_token = None
         
+        # Session HTTP reutilizável para melhor performance
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Content-Type': 'application/json'
+        })
+        
     def authenticate(self, username: str, password: str) -> bool:
         """
         Autentica no ThingsBoard e obtém JWT token.
@@ -50,7 +56,7 @@ class ThingsBoardService:
                 "password": password
             }
             
-            response = requests.post(url, json=payload, timeout=10)
+            response = self.session.post(url, json=payload, timeout=10)
             response.raise_for_status()
             
             self.jwt_token = response.json().get("token")
@@ -108,6 +114,7 @@ class ThingsBoardService:
     ) -> Dict[str, int]:
         """
         Envia múltiplas entradas de telemetria em lote.
+        Otimizado para enviar todos os registros em uma única requisição.
         
         Args:
             device_token: Token de acesso do dispositivo
@@ -116,22 +123,35 @@ class ThingsBoardService:
         Returns:
             Dict com contadores de sucesso/falha
         """
-        success_count = 0
-        failed_count = 0
+        if not telemetry_list:
+            return {"success": 0, "failed": 0, "total": 0}
         
-        for telemetry in telemetry_list:
-            timestamp = telemetry.get('ts')
-            values = telemetry.get('values', telemetry)
+        try:
+            # ThingsBoard aceita array de telemetria em uma única chamada
+            url = f"{self.tb_url}/api/v1/{device_token}/telemetry"
             
-            if self.send_telemetry(device_token, values, timestamp):
-                success_count += 1
-            else:
-                failed_count += 1
-        
-        logger.info(
-            f"Batch telemetry enviada: {success_count} sucesso, "
-            f"{failed_count} falhas"
-        )
+            # Formatar payload para envio em lote
+            # ThingsBoard aceita formato: [{"ts": ..., "values": {...}}, ...]
+            response = self.session.post(url, json=telemetry_list, timeout=30)
+            response.raise_for_status()
+            
+            success_count = len(telemetry_list)
+            failed_count = 0
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar batch telemetry: {e}")
+            # Em caso de erro, tentar enviar individualmente
+            success_count = 0
+            failed_count = 0
+            
+            for telemetry in telemetry_list:
+                timestamp = telemetry.get('ts')
+                values = telemetry.get('values', telemetry)
+                
+                if self.send_telemetry(device_token, values, timestamp):
+                    success_count += 1
+                else:
+                    failed_count += 1
         
         return {
             "success": success_count,
@@ -218,6 +238,7 @@ class ThingsBoardService:
     ) -> Optional[Dict[str, Any]]:
         """
         Cria um novo dispositivo no ThingsBoard.
+        Se o device já existir, retorna as informações dele.
         
         Args:
             device_name: Nome do dispositivo
@@ -225,11 +246,17 @@ class ThingsBoardService:
             device_label: Label do dispositivo (opcional)
             
         Returns:
-            Dict com informações do dispositivo criado
+            Dict com informações do dispositivo criado ou existente
         """
         if not self._authenticated:
             logger.error("Não autenticado. Execute authenticate() primeiro")
             return None
+        
+        # Verificar se device já existe
+        existing_device = self.get_device_by_name(device_name)
+        if existing_device:
+            logger.info(f"Dispositivo '{device_name}' já existe, reutilizando")
+            return existing_device
         
         try:
             url = f"{self.tb_url}/api/device"
@@ -246,7 +273,7 @@ class ThingsBoardService:
             if device_label:
                 payload["label"] = device_label
             
-            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            response = self.session.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             
             device_info = response.json()
@@ -254,6 +281,15 @@ class ThingsBoardService:
             
             return device_info
             
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400:
+                # Device pode ter sido criado entre a verificação e a criação
+                logger.warning(f"Device '{device_name}' pode já existir, tentando buscar...")
+                existing_device = self.get_device_by_name(device_name)
+                if existing_device:
+                    return existing_device
+            logger.error(f"Erro ao criar dispositivo: {e}")
+            return None
         except Exception as e:
             logger.error(f"Erro ao criar dispositivo: {e}")
             return None
@@ -278,7 +314,7 @@ class ThingsBoardService:
                 "Authorization": f"Bearer {self.jwt_token}"
             }
             
-            response = requests.get(url, headers=headers, timeout=10)
+            response = self.session.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             
             credentials = response.json()
@@ -289,6 +325,86 @@ class ThingsBoardService:
             
         except Exception as e:
             logger.error(f"Erro ao obter credenciais do dispositivo: {e}")
+            return None
+    
+    def send_attributes(
+        self,
+        device_id: str,
+        attributes: Dict[str, Any],
+        scope: str = "SERVER_SCOPE"
+    ) -> bool:
+        """
+        Envia atributos para um dispositivo.
+        
+        Args:
+            device_id: ID do dispositivo
+            attributes: Dicionário com atributos
+            scope: Escopo dos atributos (SERVER_SCOPE, SHARED_SCOPE, CLIENT_SCOPE)
+            
+        Returns:
+            True se enviado com sucesso
+        """
+        if not self._authenticated:
+            logger.error("Não autenticado. Execute authenticate() primeiro")
+            return False
+        
+        try:
+            url = f"{self.tb_url}/api/plugins/telemetry/DEVICE/{device_id}/{scope}"
+            headers = {
+                "Authorization": f"Bearer {self.jwt_token}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(url, json=attributes, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            logger.info(f"Atributos enviados para dispositivo {device_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar atributos: {e}")
+            return False
+    
+    def get_device_by_name(self, device_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Busca um dispositivo pelo nome.
+        
+        Args:
+            device_name: Nome do dispositivo
+            
+        Returns:
+            Dict com informações do dispositivo ou None
+        """
+        if not self._authenticated:
+            logger.error("Não autenticado. Execute authenticate() primeiro")
+            return None
+        
+        try:
+            # Buscar dispositivos do tenant
+            url = f"{self.tb_url}/api/tenant/devices"
+            headers = {
+                "Authorization": f"Bearer {self.jwt_token}"
+            }
+            params = {
+                "pageSize": 1000,
+                "page": 0
+            }
+            
+            response = self.session.get(url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            
+            devices = response.json().get("data", [])
+            
+            # Procurar device pelo nome
+            for device in devices:
+                if device.get("name") == device_name:
+                    return device
+            
+            logger.warning(f"Dispositivo '{device_name}' não encontrado")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Erro ao buscar dispositivo: {e}")
             return None
 
 
