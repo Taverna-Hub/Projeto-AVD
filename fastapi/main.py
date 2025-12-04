@@ -32,10 +32,29 @@ async def lifespan(app: FastAPI):
         logger.info("Iniciando MLflow Monitor em background...")
         mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
         polling_interval = int(os.getenv("MLFLOW_POLLING_INTERVAL", "30"))
-        experiments = os.getenv("MLFLOW_MONITORED_EXPERIMENTS", "data-pipeline").split(",")
+        experiments = os.getenv("MLFLOW_MONITORED_EXPERIMENTS", "Imputacao_por_Estacao").split(",")
         
-        mlflow_monitor.tracking_uri = mlflow_tracking_uri
+        mlflow_monitor.mlflow_tracking_uri = mlflow_tracking_uri
         mlflow_monitor.check_interval = polling_interval
+        
+        # Configurar S3
+        mlflow_monitor.s3_bucket_name = os.getenv("S3_BUCKET_NAME")
+        mlflow_monitor.s3_prefix = os.getenv("S3_PREFIX", "dados_imputados")
+        
+        if mlflow_monitor.s3_bucket_name:
+            try:
+                import boto3
+                mlflow_monitor.s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                    region_name=os.getenv("AWS_REGION", "us-east-1")
+                )
+                logger.info(f"S3 configurado: bucket={mlflow_monitor.s3_bucket_name}, prefix={mlflow_monitor.s3_prefix}")
+            except Exception as e:
+                logger.error(f"Erro ao configurar S3: {e}")
+        else:
+            logger.warning("S3 não configurado - defina S3_BUCKET_NAME no .env")
         
         if mlflow_monitor.initialize():
             monitor_thread = threading.Thread(
@@ -44,7 +63,7 @@ async def lifespan(app: FastAPI):
                 daemon=True
             )
             monitor_thread.start()
-            logger.info(f"MLflow Monitor iniciado (intervalo: {polling_interval}s)")
+            logger.info(f"MLflow Monitor iniciado (intervalo: {polling_interval}s, experimentos: {experiments})")
         else:
             logger.error("Falha ao inicializar MLflow Monitor")
     else:

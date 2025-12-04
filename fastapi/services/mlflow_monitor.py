@@ -29,6 +29,10 @@ import time
 import sys
 import os
 import argparse
+import boto3
+import requests
+from io import StringIO
+from botocore.exceptions import ClientError
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
@@ -55,7 +59,9 @@ class MLflowMonitor:
         mlflow_tracking_uri: str = "http://mlflow:5000",
         check_interval: int = 60,
         tb_username: Optional[str] = None,
-        tb_password: Optional[str] = None
+        tb_password: Optional[str] = None,
+        s3_bucket_name: Optional[str] = None,
+        s3_prefix: Optional[str] = None
     ):
         """
         Inicializa o monitor do MLflow.
@@ -65,11 +71,30 @@ class MLflowMonitor:
             check_interval: Intervalo de verificação em segundos
             tb_username: Usuário do ThingsBoard
             tb_password: Senha do ThingsBoard
+            s3_bucket_name: Nome do bucket S3
+            s3_prefix: Prefixo para arquivos no S3
         """
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.check_interval = check_interval
         self.tb_username = tb_username or os.getenv("THINGSBOARD_USERNAME", "tenant@thingsboard.org")
         self.tb_password = tb_password or os.getenv("THINGSBOARD_PASSWORD", "tenant")
+        
+        # Configuração S3
+        self.s3_bucket_name = s3_bucket_name or os.getenv("S3_BUCKET_NAME")
+        self.s3_prefix = s3_prefix or os.getenv("S3_PREFIX", "dados_imputados")
+        self.s3_client = None
+        
+        if self.s3_bucket_name:
+            try:
+                self.s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                    region_name=os.getenv("AWS_REGION", "us-east-1")
+                )
+                logger.info(f"S3 client configurado: bucket={self.s3_bucket_name}, prefix={self.s3_prefix}")
+            except Exception as e:
+                logger.error(f"Erro ao configurar S3 client: {e}")
         
         # Último timestamp verificado por experimento
         self.last_check_timestamps: Dict[str, int] = {}
@@ -423,6 +448,215 @@ class MLflowMonitor:
             logger.error(f"Erro ao obter/criar device: {e}")
             return None
     
+    def find_csv_in_s3(self, station_name: str, model_type: Optional[str] = None) -> Optional[str]:
+        """
+        Encontra arquivo CSV no S3 para a estação e modelo.
+        
+        Args:
+            station_name: Nome da estação (pode ter espaços ou underscores)
+            model_type: Tipo do modelo (opcional)
+            
+        Returns:
+            Chave do arquivo no S3 ou None
+        """
+        if not self.s3_client or not self.s3_bucket_name:
+            logger.error("S3 client não configurado")
+            return None
+        
+        try:
+            # Tentar com underscores (formato padrão dos arquivos)
+            station_with_underscore = station_name.replace(" ", "_")
+            
+            # Padrão: dados_imputados/resultados/dados_para_update_neon_{STATION}_{MODEL}.csv
+            prefix = f"dados_imputados/resultados/dados_para_update_neon_{station_with_underscore}"
+            
+            logger.debug(f"Buscando no S3: bucket={self.s3_bucket_name}, prefix={prefix}")
+            
+            response = self.s3_client.list_objects_v2(
+                Bucket=self.s3_bucket_name,
+                Prefix=prefix
+            )
+            
+            if 'Contents' not in response or not response['Contents']:
+                # Tentar sem underscores se não encontrou
+                station_without_underscore = station_name.replace("_", " ")
+                prefix_alt = f"dados_imputados/resultados/dados_para_update_neon_{station_without_underscore}"
+                
+                logger.debug(f"Tentando busca alternativa: prefix={prefix_alt}")
+                
+                response = self.s3_client.list_objects_v2(
+                    Bucket=self.s3_bucket_name,
+                    Prefix=prefix_alt
+                )
+                
+                if 'Contents' not in response:
+                    logger.warning(f"CSV não encontrado no S3 para {station_name} (tentativas: '{station_with_underscore}' e '{station_without_underscore}')")
+                    return None
+            
+            # Filtrar por model_type se especificado
+            csv_files = [obj['Key'] for obj in response['Contents'] if obj['Key'].endswith('.csv')]
+            
+            if model_type:
+                # Procurar arquivo específico do modelo
+                for csv_file in csv_files:
+                    if model_type in csv_file:
+                        logger.info(f"CSV encontrado: {csv_file}")
+                        return csv_file
+            
+            # Retornar primeiro CSV encontrado
+            if csv_files:
+                logger.info(f"CSV encontrado: {csv_files[0]}")
+                return csv_files[0]
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Erro ao buscar CSV no S3: {e}")
+            return None
+    
+    def download_csv_from_s3(self, s3_key: str) -> Optional[pd.DataFrame]:
+        """
+        Baixa e lê CSV do S3.
+        
+        Args:
+            s3_key: Chave do arquivo no S3
+            
+        Returns:
+            DataFrame com os dados ou None
+        """
+        if not self.s3_client or not self.s3_bucket_name:
+            logger.error("S3 client não configurado")
+            return None
+        
+        try:
+            obj = self.s3_client.get_object(Bucket=self.s3_bucket_name, Key=s3_key)
+            csv_data = obj['Body'].read().decode('utf-8')
+            df = pd.read_csv(StringIO(csv_data))
+            logger.info(f"CSV baixado do S3: {len(df)} registros")
+            return df
+            
+        except Exception as e:
+            logger.error(f"Erro ao baixar CSV do S3: {e}")
+            return None
+    
+    def prepare_telemetry_from_csv(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
+        """
+        Prepara dados de telemetria a partir do DataFrame CSV.
+        
+        Args:
+            df: DataFrame com dados processados
+            
+        Returns:
+            Lista de telemetria formatada para ThingsBoard
+        """
+        telemetry_list = []
+        
+        try:
+            # Colunas esperadas: id, data, hora, temperatura, umidade, velocidade_vento
+            for _, row in df.iterrows():
+                try:
+                    # Combinar data e hora para timestamp
+                    if 'data' in df.columns and 'hora' in df.columns:
+                        date_str = str(row['data'])
+                        time_str = str(row['hora'])
+                        datetime_str = f"{date_str} {time_str}"
+                        timestamp = pd.to_datetime(datetime_str).timestamp() * 1000
+                    else:
+                        timestamp = int(time.time() * 1000)
+                    
+                    # Preparar valores de telemetria
+                    values = {}
+                    
+                    if 'temperatura' in df.columns and pd.notna(row['temperatura']):
+                        values['temperatura'] = float(row['temperatura'])
+                    
+                    if 'umidade' in df.columns and pd.notna(row['umidade']):
+                        values['umidade'] = float(row['umidade'])
+                    
+                    if 'velocidade_vento' in df.columns and pd.notna(row['velocidade_vento']):
+                        values['velocidade_vento'] = float(row['velocidade_vento'])
+                    
+                    if values:
+                        telemetry_list.append({
+                            'ts': int(timestamp),
+                            'values': values
+                        })
+                
+                except Exception as e:
+                    logger.debug(f"Erro ao processar linha: {e}")
+                    continue
+            
+            logger.info(f"Preparados {len(telemetry_list)} registros de telemetria")
+            return telemetry_list
+            
+        except Exception as e:
+            logger.error(f"Erro ao preparar telemetria: {e}")
+            return []
+    
+    def send_telemetry_to_thingsboard(
+        self,
+        device_token: str,
+        telemetry_data: List[Dict[str, Any]],
+        batch_size: int = 1000
+    ) -> Dict[str, Any]:
+        """
+        Envia telemetria diretamente para ThingsBoard via HTTP API.
+        
+        Args:
+            device_token: Token de acesso do device
+            telemetry_data: Lista de dados de telemetria
+            batch_size: Tamanho do lote para envio
+            
+        Returns:
+            Estatísticas do envio
+        """
+        result = {
+            "success": 0,
+            "failed": 0,
+            "total": len(telemetry_data)
+        }
+        
+        try:
+            # URL do ThingsBoard
+            tb_url = thingsboard_service.tb_url
+            url = f"{tb_url}/api/v1/{device_token}/telemetry"
+            
+            # Enviar em lotes
+            for i in range(0, len(telemetry_data), batch_size):
+                batch = telemetry_data[i:i + batch_size]
+                
+                try:
+                    response = requests.post(
+                        url,
+                        json=batch,
+                        timeout=30
+                    )
+                    
+                    if response.status_code == 200:
+                        result["success"] += len(batch)
+                        logger.debug(f"Lote enviado: {len(batch)} registros")
+                    else:
+                        result["failed"] += len(batch)
+                        logger.error(f"Erro ao enviar lote: {response.status_code} - {response.text}")
+                
+                except Exception as e:
+                    result["failed"] += len(batch)
+                    logger.error(f"Erro ao enviar lote: {e}")
+                
+                # Delay entre lotes
+                if i + batch_size < len(telemetry_data):
+                    time.sleep(0.1)
+            
+            logger.info(
+                f"Telemetria enviada: {result['success']}/{result['total']} registros"
+            )
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar telemetria: {e}")
+            result["error"] = str(e)
+        
+        return result
+    
     def send_data_to_thingsboard(
         self,
         device_token: str,
@@ -479,7 +713,7 @@ class MLflowMonitor:
     
     def process_run(self, run: mlflow.entities.Run) -> Dict[str, Any]:
         """
-        Processa um run do MLflow: extrai dados e envia para ThingsBoard.
+        Processa um run do MLflow: busca CSV no S3 e envia telemetria para ThingsBoard.
         
         Args:
             run: Run do MLflow
@@ -492,63 +726,132 @@ class MLflowMonitor:
             "run_name": run.info.run_name,
             "success": False,
             "station_name": None,
-            "device_created": False,
+            "model_type": None,
+            "device_found": False,
+            "csv_found": False,
             "data_sent": False,
             "records_sent": 0,
             "error": None
         }
         
         try:
-            # 1. Extrair nome da estação
-            station_name = self.extract_station_from_run(run)
+            # 1. Extrair informações do run (tags: station_name, model_type)
+            tags = run.data.tags
+            station_name = tags.get("station_name") or tags.get("station")
+            model_type = tags.get("model_type") or tags.get("modelo")
+            
+            # Fallback: tentar extrair do nome do run
             if not station_name:
-                result["error"] = "Não foi possível extrair nome da estação"
+                station_name = self.extract_station_from_run(run)
+            
+            if not station_name:
+                result["error"] = "station_name não encontrado nas tags ou no nome do run"
                 logger.warning(f"Run {run.info.run_id}: {result['error']}")
                 return result
             
             result["station_name"] = station_name
-            logger.info(f"Processando run para estação: {station_name}")
+            result["model_type"] = model_type
+            logger.info(f"Processando run: estação={station_name}, modelo={model_type}")
             
-            # 2. Obter ou criar device no ThingsBoard (sempre cria, mesmo sem dados)
-            device = self.get_or_create_device(station_name)
+            # 2. Preparar nomes: station_name para S3, device_name para ThingsBoard
+            # Remover _TESTE se houver (mantém underscores para S3)
+            station_for_s3 = station_name.replace("_TESTE", "").strip()
+            
+            # Formato do device: "{CIDADE} - Processado" (substituir _ por espaços)
+            device_name = f"{station_for_s3.replace('_', ' ')} - Processado"
+            
+            logger.info(f"Buscando device: {device_name}, CSV no S3: {station_for_s3}")
+            
+            # 3. Buscar device existente no ThingsBoard
+            device = None
+            
+            # Primeiro verificar cache
+            if device_name in self.device_cache:
+                device = self.device_cache[device_name]
+                logger.info(f"Device encontrado no cache: {device_name}")
+            else:
+                # Buscar no ThingsBoard
+                try:
+                    url = f"{thingsboard_service.tb_url}/api/tenant/devices?deviceName={device_name}"
+                    headers = {"Authorization": f"Bearer {thingsboard_service.jwt_token}"}
+                    
+                    response = requests.get(url, headers=headers, timeout=10)
+                    
+                    if response.status_code == 200:
+                        device_info = response.json()
+                        if device_info:
+                            device_id = device_info.get("id", {}).get("id")
+                            if device_id:
+                                # Obter token
+                                token = thingsboard_service.get_device_credentials(device_id)
+                                if token:
+                                    device = {
+                                        "id": device_id,
+                                        "name": device_name,
+                                        "token": token
+                                    }
+                                    self.device_cache[device_name] = device
+                                    logger.info(f"Device encontrado no ThingsBoard: {device_name}")
+                except Exception as e:
+                    logger.error(f"Erro ao buscar device: {e}")
+            
             if not device:
-                result["error"] = "Falha ao criar/obter device no ThingsBoard"
-                logger.error(f"Run {run.info.run_id}: {result['error']}")
+                result["error"] = f"Device '{device_name}' não encontrado no ThingsBoard"
+                logger.error(result["error"])
                 return result
             
-            result["device_created"] = True
+            result["device_found"] = True
             result["device_id"] = device["id"]
-            result["success"] = True
+            result["device_name"] = device_name
             
-            logger.info(f"Device criado com sucesso para estação: {station_name}")
+            # 4. Buscar CSV no S3 (usando station_for_s3 com underscores)
+            if not self.s3_client:
+                result["error"] = "S3 client não configurado"
+                logger.error(result["error"])
+                return result
             
-            # 3. Tentar baixar e enviar dados (opcional para teste)
-            pkl_files = self.download_pkl_artifacts(run)
-            if pkl_files:
-                df_processed = None
-                for pkl_file in pkl_files:
-                    df = self.load_processed_data(pkl_file)
-                    if df is not None and not df.empty:
-                        df_processed = df
-                        logger.info(f"Dados carregados: {len(df)} registros de {pkl_file.name}")
-                        break
-                
-                if df_processed is not None:
-                    # Enviar dados para ThingsBoard
-                    send_result = self.send_data_to_thingsboard(
-                        device_token=device["token"],
-                        df=df_processed,
-                        station_name=station_name
-                    )
-                    result["data_sent"] = send_result["success"] > 0
-                    result["records_sent"] = send_result["success"]
-                    logger.info(f"Dados enviados: {result['records_sent']} registros")
+            s3_key = self.find_csv_in_s3(station_for_s3, model_type)
+            if not s3_key:
+                result["error"] = f"CSV não encontrado no S3 para {station_name} - {model_type or 'Default'}"
+                logger.warning(result["error"])
+                return result
             
-            logger.info(f"Run processado com sucesso: {station_name}")
+            result["csv_found"] = True
+            result["csv_key"] = s3_key
+            
+            # 5. Baixar e processar CSV
+            df_csv = self.download_csv_from_s3(s3_key)
+            if df_csv is None or df_csv.empty:
+                result["error"] = "CSV vazio ou erro ao processar"
+                logger.error(result["error"])
+                return result
+            
+            # 6. Preparar telemetria
+            telemetry_data = self.prepare_telemetry_from_csv(df_csv)
+            if not telemetry_data:
+                result["error"] = "Nenhum dado de telemetria preparado"
+                logger.warning(result["error"])
+                return result
+            
+            # 7. Enviar telemetria para ThingsBoard
+            send_result = self.send_telemetry_to_thingsboard(
+                device_token=device["token"],
+                telemetry_data=telemetry_data,
+                batch_size=1000
+            )
+            
+            result["data_sent"] = send_result["success"] > 0
+            result["records_sent"] = send_result["success"]
+            result["success"] = result["data_sent"]
+            
+            logger.info(
+                f"Run processado com sucesso: {station_name} - "
+                f"{result['records_sent']} registros enviados para {device_name}"
+            )
             
         except Exception as e:
             result["error"] = str(e)
-            logger.error(f"Erro ao processar run {run.info.run_id}: {e}")
+            logger.error(f"Erro ao processar run {run.info.run_id}: {e}", exc_info=True)
         
         return result
     

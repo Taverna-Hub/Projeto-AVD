@@ -270,7 +270,7 @@ class MLflowService:
                 if artifacts:
                     for artifact_name, artifact_path in artifacts.items():
                         if artifact_path and Path(artifact_path).exists():
-                            mlflow.log_artifact(artifact_path, artifact_name)
+                            mlflow.log_artifact(artifact_path)
                 
                 logger.info(f"Run de imputação registrada: {station_name}")
                 
