@@ -94,6 +94,7 @@ services:
       - TB_USERNAME=${TB_USERNAME:-tenant@thingsboard.org}
       - TB_PASSWORD=${TB_PASSWORD:-tenant}
       - THINGSBOARD_URL=http://thingsboard:9090
+      - TB_HOST=${TB_HOST:-thingsboard}
     volumes:
       - ./data:/app/data:ro
     restart: unless-stopped

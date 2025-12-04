@@ -795,8 +795,13 @@ class MLflowMonitor:
                 except Exception as e:
                     logger.error(f"Erro ao buscar device: {e}")
             
+            # Se device não encontrado, criar automaticamente
             if not device:
-                result["error"] = f"Device '{device_name}' não encontrado no ThingsBoard"
+                logger.info(f"Device não encontrado, criando: {device_name}")
+                device = self.get_or_create_device(station_for_s3)
+            
+            if not device:
+                result["error"] = f"Falha ao criar/encontrar device '{device_name}'"
                 logger.error(result["error"])
                 return result
             
