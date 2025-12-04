@@ -1,16 +1,20 @@
 # 🌦️ Pipeline de Dados Meteorológicos - INMET
 
-> *Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos com foco em sensação térmica*
+> *Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos com foco em previsão de temperatura horária*
 
 ## 📋 Descrição Geral
 
-Este projeto foi desenvolvido como parte da disciplina **Análise e Visualização de Dados (2025.2)** da **CESAR School**, implementando um pipeline de Business Intelligence para dados meteorológicos do INMET (Instituto Nacional de Meteorologia) com ênfase especial na **previsão de sensação térmica**.
+Este projeto foi desenvolvido como parte da disciplina **Análise e Visualização de Dados (2025.2)** da **CESAR School**, implementando um pipeline de Business Intelligence para dados meteorológicos do INMET (Instituto Nacional de Meteorologia) com ênfase especial na **previsão de temperatura horária**.
 
-O sistema coleta dados de estações meteorológicas de Pernambuco, processa e armazena as informações, aplica modelos de Machine Learning para estimar a sensação térmica e disponibiliza dashboards interativos para análise e visualização dos dados.
+O sistema coleta dados de estações meteorológicas de Pernambuco, processa e armazena as informações, aplica modelos de Machine Learning para estimar a temperatura horária e disponibiliza dashboards interativos para análise e visualização dos dados.
 
 ## 🎯 Objetivo Principal
 
-**Prever Sensação Térmica**: Estimar a sensação térmica percebida a partir de variáveis climáticas como temperatura, umidade e velocidade do vento, utilizando modelos de Machine Learning.
+Prever a temperatura horária com base em dados meteorológicos coletados das estações automáticas do INMET. O projeto utiliza variáveis como temperatura, umidade relativa e velocidade do vento para construir modelos preditivos que capturam padrões sazonais e diários, auxiliando na tomada de decisão em setores como agricultura e planejamento urbano.
+
+Neste projeto, o objetivo central é estimar a temperatura horária a partir de dados reais coletados das estações automáticas do INMET. A escolha dessa problemática se justifica pela forte relação entre a temperatura e outras variáveis meteorológicas, com destaque para a umidade relativa do ar, velocidade do vento e a própria temperatura registrada previamente. Essas variáveis influenciam diretamente a dinâmica térmica da atmosfera e permitem a construção de modelos preditivos capazes de capturar padrões sazonais, variações diárias e comportamentos característicos do clima de Pernambuco.
+
+Com base no conjunto de dados disponibilizado, foi estruturado um processo analítico que inclui preparação dos dados, interpretação dos padrões identificados e construção de um modelo preditivo. O foco do estudo está na capacidade de identificar como cada variável contribui para o comportamento da temperatura ao longo do tempo e de que forma essas relações podem ser utilizadas para gerar previsões confiáveis.
 
 ### Variáveis Utilizadas
 - 🌡️ **Temperatura** (°C)
@@ -18,7 +22,7 @@ O sistema coleta dados de estações meteorológicas de Pernambuco, processa e a
 - 💨 **Velocidade do Vento** (m/s)
 
 ### Visualizações Principais
-- 📈 Curva real vs. prevista da sensação térmica
+- 📈 Curva real vs. prevista da temperatura horária
 - 🌳 Importância das variáveis na árvore de decisão
 - 🔍 Análise de resíduos e performance do modelo
 
@@ -40,12 +44,12 @@ graph TD
     style F fill:#ef5350
 ```
 
-### Fluxo de Dados para Sensação Térmica
+### Fluxo de Dados para Previsão de Temperatura Horária
 1. **Ingestão**: API REST coleta dados meteorológicos via FastAPI
 2. **Armazenamento**: Dados brutos salvos no MinIO (S3-compatible)
-3. **Processamento**: Cálculo de sensação térmica e estruturação no Neon DB
+3. **Processamento**: Cálculo de temperatura horária e estruturação no Neon DB
 4. **Análise**: Feature engineering e modelagem em Jupyter Notebooks
-5. **MLOps**: Registro e tracking de experimentos de sensação térmica com MLFlow
+5. **MLOps**: Registro e tracking de experimentos de temperatura horária com MLFlow
 6. **Visualização**: Dashboards interativos com comparação real vs. previsto
 
 ![Arquitetura do Pipeline](img/image.png)
@@ -76,15 +80,25 @@ De forma resumida, o fluxo de dados implementado segue a mesma lógica geral des
 
 ## 🛠️ Tecnologias Utilizadas
 
-| Categoria | Tecnologias |
-|-----------|-------------|
-| **Backend** | FastAPI, Python 3.9+, Uvicorn |
-| **Armazenamento** | MinIO, Snowflake |
-| **Análise** | JupyterLab, Pandas, Scikit-learn, NumPy |
-| **MLOps** | MLFlow |
-| **Visualização** | Trendz Analytics, Matplotlib, Seaborn |
-| **Orquestração** | Docker, Docker Compose |
-| **Linguagens** | Python, SQL |
+| Categoria          | Tecnologias                                   |
+|--------------------|-----------------------------------------------|
+| **Backend**        | FastAPI, Python 3.9+, Uvicorn                |
+| **Armazenamento**  | AWS S3, Neon PostgreSQL, Docker Volumes      |
+| **Análise**        | JupyterLab, Pandas, Scikit-learn, NumPy      |
+| **MLOps**          | MLFlow, PostgreSQL (local)                   |
+| **Visualização**   | ThingsBoard, Matplotlib, Seaborn             |
+| **Orquestração**   | Docker, Docker Compose                       |
+| **Linguagens**     | Python, SQL                                  |
+
+### Acesso aos Serviços
+
+| **Container**   | **Porta** | **Função**                                      |
+|------------------|-----------|------------------------------------------------|
+| **FastAPI**      | 8060      | API REST para ingestão e processamento de dados |
+| **ThingsBoard**  | 9090      | Plataforma IoT utilizada para visualização e construção de dashboards |
+| **PostgreSQL**   | 5432      | Banco de dados relacional usado pelo MLflow para metadados |
+| **JupyterLab**   | 8888      | Ambiente interativo para análise exploratória e notebooks |
+| **MLflow**       | 5000      | Serviço de tracking de experimentos e versionamento de modelos |
 
 ## 📁 Estrutura do Repositório
 
@@ -101,17 +115,17 @@ pipeline-meteorologico/
 │   └── Dockerfile
 ├── 📓 notebooks/
 │   ├── exploracao_dados.ipynb
-│   ├── modelagem_sensacao_termica.ipynb      # FOCO NO TEMA
+│   ├── modelagem_temperatura_horaria.ipynb      # FOCO NO TEMA
 │   ├── importancia_variaveis.ipynb           # FOCO NO TEMA
 │   └── analise_temporal.ipynb
 ├── 🗃️ sql_scripts/
 │   ├── create_tables.sql
-│   ├── calculo_sensacao_termica.sql          # FOCO NO TEMA
+│   ├── calculo_temperatura_horaria.sql          # FOCO NO TEMA
 │   └── queries_analiticas.sql
 ├── 📈 trendz/
 │   └── Dockerfile
 ├── 📋 reports/
-│   └── documentacao_sensacao_termica.md      # FOCO NO TEMA
+│   └── documentacao_temperatura_horaria.md      # FOCO NO TEMA
 ├── 📄 README.md
 ├── 🖼️ img/
 │   └── image.png
@@ -166,11 +180,11 @@ docker-compose restart fastapi
 docker-compose exec jupyterlab bash
 ```
 
-## 🔄 Fluxo de Funcionamento para Sensação Térmica
+## 🔄 Fluxo de Funcionamento para Previsão de Temperatura Horária
 
 ### 1. Coleta de Dados para Modelo
 ```python
-# Exemplo de requisição para ingestão com variáveis de sensação térmica
+# Exemplo de requisição para ingestão com variáveis de temperatura horária
 import requests
 
 payload = {
@@ -179,40 +193,40 @@ payload = {
     "temperatura": 28.5,      # Variável preditora
     "umidade": 75,            # Variável preditora  
     "velocidade_vento": 3.2,  # Variável preditora
-    "sensacao_termica": 30.1  # Variável alvo (para treinamento)
+    "temperatura_horaria": 30.1  # Variável alvo (para treinamento)
 }
 
 response = requests.post("http://localhost:8000/dados", json=payload)
 ```
 
-### 2. Processamento Específico para Sensação Térmica
-- Cálculo de sensação térmica usando fórmula de Steadman
-- Feature engineering: interações entre temperatura e umidade
+### 2. Processamento Específico para Temperatura Horária
+- Cálculo da temperatura horária usando dados das estações do INMET
+- Feature engineering: interações entre temperatura, umidade e vento
 - Normalização das variáveis climáticas
 - Split temporal para validação
 
-### 3. Modelagem Preditiva da Sensação Térmica
-- **Algoritmos**: Random Forest, XGBoost, Linear Regression
+### 3. Modelagem Preditiva da Temperatura Horária
+- **Algoritmos**: Random Forest, XGBoost, Regressão Linear
 - **Variáveis**: Temperatura, Umidade, Velocidade do Vento
 - **Métricas**: MAE, RMSE, R², MAPE
 - **Validação**: Time Series Split
 
-## 🤖 Modelagem de Sensação Térmica
+## 🤖 Modelagem de Temperatura Horária
 
 ### Abordagens de Machine Learning
 
 | Técnica | Objetivo | Métricas | Variáveis |
 |---------|----------|----------|-----------|
-| **Regressão Random Forest** | Previsão de sensação térmica | MAE, RMSE, R² | Temp, Umidade, Vento |
+| **Regressão Random Forest** | Previsão de temperatura horária | MAE, RMSE, R² | Temp, Umidade, Vento |
 | **Análise de Importância** | Rankear variáveis influentes | Feature Importance | Todas as features |
-| **Visualização** | Real vs. Previsto | Gráficos comparativos | Sensação térmica |
+| **Visualização** | Real vs. Previsto | Gráficos comparativos | Temperatura horária |
 
 ### Exemplo de Código para Modelagem
 ```python
-# Modelo de sensação térmica
+# Modelo de temperatura horária
 from sklearn.ensemble import RandomForestRegressor
 
-modelo_sensacao = RandomForestRegressor(
+modelo_temperatura = RandomForestRegressor(
     n_estimators=100,
     max_depth=10,
     random_state=42
@@ -220,18 +234,18 @@ modelo_sensacao = RandomForestRegressor(
 
 # Variáveis para o modelo
 X = dados[['temperatura', 'umidade', 'velocidade_vento']]
-y = dados['sensacao_termica']
+y = dados['temperatura_horaria']
 
-modelo_sensacao.fit(X, y)
+modelo_temperatura.fit(X, y)
 ```
 
-## 📊 Dashboards e Visualizações - Sensação Térmica
+## 📊 Dashboards e Visualizações - Temperatura Horária
 
 ### Trendz Analytics - Foco no Tema
-- **Dashboard Sensação Térmica**: Comparação real vs. prevista
+- **Dashboard Temperatura Horária**: Comparação real vs. prevista
 - **Importância das Variáveis**: Gráfico de importância da árvore
 - **Análise de Resíduos**: Distribuição dos erros de previsão
-- **Sensação por Condições**: Heatmaps de sensação vs. temperatura/umidade
+- **Temperatura por Condições**: Heatmaps de temperatura vs. temperatura/umidade
 
 ### Visualizações Específicas
 1. **Curva Real vs. Prevista**: Linhas sobrepostas mostrando acurácia do modelo
@@ -241,7 +255,7 @@ modelo_sensacao.fit(X, y)
 
 ### Acesso aos Dashboards
 1. Acesse http://localhost:8080
-2. Navegue para o dashboard "Sensação Térmica"
+2. Navegue para o dashboard "Temperatura Horária"
 3. Explore as visualizações interativas
 
 ## 👥 Autores do Projeto
@@ -317,7 +331,7 @@ modelo_sensacao.fit(X, y)
 
 <div align="center">
 
-**🌡️ Previsão da sensação, compreensão da percepção**
+**🌡️ Previsão da temperatura, compreensão do clima**
 
 *CESAR School • Análise e Visualização de Dados • 2025.2*
 
