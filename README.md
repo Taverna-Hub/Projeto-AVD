@@ -27,10 +27,10 @@ O sistema coleta dados de estações meteorológicas de Pernambuco, processa e a
 ```mermaid
 graph TD
     A[FastAPI - Ingestão] --> B[MinIO - Armazenamento]
-    B --> C[Snowflake - Data Warehouse]
+    B --> C[Neon DB - Data Warehouse]
     C --> D[JupyterLab - Análise]
     D --> E[MLFlow - Experimentos]
-    E --> F[Trendz Analytics - Dashboards]
+    E --> F[ThingsBoard - Dashboards]
     
     style A fill:#00acc1
     style B fill:#f9a825
@@ -43,10 +43,36 @@ graph TD
 ### Fluxo de Dados para Sensação Térmica
 1. **Ingestão**: API REST coleta dados meteorológicos via FastAPI
 2. **Armazenamento**: Dados brutos salvos no MinIO (S3-compatible)
-3. **Processamento**: Cálculo de sensação térmica e estruturação no Snowflake
+3. **Processamento**: Cálculo de sensação térmica e estruturação no Neon DB
 4. **Análise**: Feature engineering e modelagem em Jupyter Notebooks
 5. **MLOps**: Registro e tracking de experimentos de sensação térmica com MLFlow
 6. **Visualização**: Dashboards interativos com comparação real vs. previsto
+
+![Arquitetura do Pipeline](img/image.png)
+
+### Camadas de Armazenamento
+
+A solução utiliza diferentes camadas de armazenamento, separando dados brutos, dados estruturados e artefatos de machine learning:
+
+| **Tipo**            | **Tecnologia**     | **Localização**          |
+|----------------------|--------------------|--------------------------|
+| **Arquivos brutos**  | AWS S3            | Nuvem                    |
+| **Dados estruturados** | Neon PostgreSQL   | Nuvem (serverless)       |
+| **Metadados do MLflow** | PostgreSQL       | Container local          |
+| **Artefatos de ML**  | Volume Docker     | Local (`/mlflow/artifacts`) |
+
+Os arquivos brutos oriundos das estações do INMET são armazenados em um bucket único no AWS S3. Após o processamento inicial, os dados são carregados e organizados em tabelas no Neon PostgreSQL, que assume o papel de banco relacional na nuvem com dados estruturados. O MLflow utiliza um PostgreSQL local para registrar execuções, parâmetros e métricas dos experimentos. Os artefatos de modelo (por exemplo, arquivos serializados) são armazenados em um volume Docker, garantindo persistência local entre reinicializações dos contêineres.
+
+A opção por utilizar um único bucket S3 para dados brutos foi motivada pelo volume relativamente pequeno de dados do projeto e pela necessidade de manter o custo da infraestrutura mais baixo. Separar em múltiplos buckets, embora possível, não traria ganho significativo de organização para o escopo atual, mas aumentaria a complexidade e o custo de gerenciamento na nuvem.
+
+### Fluxo de Dados
+
+De forma resumida, o fluxo de dados implementado segue a mesma lógica geral descrita na especificação do projeto com adaptações pontuais:
+
+1. **Ingestão**: A API FastAPI recebe os dados meteorológicos do INMET e os armazena no ThingsBoard que o envia para o bucket S3 através da FastAPI. Quando necessário, a própria API acessa esse bucket, recupera os dados já processados e os envia diretamente ao ThingsBoard para atualização imediata do dashboard.
+2. **Estruturação**: A partir dos arquivos armazenados no S3, os dados são processados e carregados para o PostgreSQL em nuvem, onde são organizados em tabelas adequadas para consulta, análise e preparação posterior para modelagem.
+3. **Análise e Modelagem**: O JupyterLab acessa o banco estruturado, realiza o tratamento dos dados, cria as variáveis derivadas e treina o modelo de previsão da temperatura horária. Durante todo esse processo, o MLflow registra parâmetros, métricas e versões do modelo, utilizando o Neon para metadados e o volume local `/mlflow/artifacts` para armazenar os artefatos do modelo.
+4. **Visualização**: Sempre que o MLflow recebe uma nova execução, um monitor implementado no código detecta a atualização, acessa novamente o bucket S3 para recuperar os dados processados e envia os resultados atualizados ao ThingsBoard. Dessa forma, o dashboard permanece continuamente sincronizado com os dados mais recentes e com as predições geradas pelo modelo.
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -87,6 +113,8 @@ pipeline-meteorologico/
 ├── 📋 reports/
 │   └── documentacao_sensacao_termica.md      # FOCO NO TEMA
 ├── 📄 README.md
+├── 🖼️ img/
+│   └── image.png
 └── ⚖️ LICENSE
 ```
 
