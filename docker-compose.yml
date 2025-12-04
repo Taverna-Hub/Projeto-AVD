@@ -87,6 +87,13 @@ services:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - S3_PREFIX=${S3_PREFIX:-inmet-data}
       - DATA_DIRECTORY=${DATA_DIRECTORY:-data}
+      - ENABLE_MLFLOW_MONITOR=${ENABLE_MLFLOW_MONITOR:-false}
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-http://mlflow:5000}
+      - MLFLOW_POLLING_INTERVAL=${MLFLOW_POLLING_INTERVAL:-30}
+      - MLFLOW_MONITORED_EXPERIMENTS=${MLFLOW_MONITORED_EXPERIMENTS:-data-pipeline}
+      - TB_USERNAME=${TB_USERNAME:-tenant@thingsboard.org}
+      - TB_PASSWORD=${TB_PASSWORD:-tenant}
+      - THINGSBOARD_URL=http://thingsboard:9090
     volumes:
       - ./data:/app/data:ro
     restart: unless-stopped
@@ -170,6 +177,28 @@ services:
       - NEON_HOST=${NEON_HOST}  # Será o host do Neon cloud
       - NEON_PORT=5432
       - PYTHONUNBUFFERED=1
+
+  # MLflow Monitor - Sincronização com ThingsBoard
+  mlflow_monitor:
+    build:
+      context: .
+      dockerfile: fastapi/Dockerfile
+    container_name: mlflow_monitor
+    restart: unless-stopped
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - THINGSBOARD_URL=http://thingsboard:9090
+      - THINGSBOARD_USERNAME=${THINGSBOARD_USERNAME:-tenant@thingsboard.org}
+      - THINGSBOARD_PASSWORD=${THINGSBOARD_PASSWORD:-tenant}
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      mlflow:
+        condition: service_started
+      thingsboard:
+        condition: service_healthy
+    networks:
+      - app-network
+    command: python -m services.mlflow_monitor --experiments "data-pipeline,Imputacao por Estacao" --interval 60 --daemon --log-level INFO
 
 volumes:
   postgres-data:

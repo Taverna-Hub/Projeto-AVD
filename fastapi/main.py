@@ -1,17 +1,64 @@
 from contextlib import asynccontextmanager
+import os
+import threading
+import logging
 
 from fastapi import FastAPI
 
 from .routers import upload, status, processed
+from .services.mlflow_monitor import router as mlflow_sync_router, mlflow_monitor
 from .services.mlflow_service import mlflow_service
+from .services.thingsboard_service import thingsboard_service
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Inicializar MLflow
+    # Startup: Inicializar serviços
+    logger.info("Inicializando serviços...")
     mlflow_service.initialize()
+    
+    # Autenticar no ThingsBoard
+    tb_username = os.getenv("TB_USERNAME", "tenant@thingsboard.org")
+    tb_password = os.getenv("TB_PASSWORD", "tenant")
+    thingsboard_service.authenticate(tb_username, tb_password)
+    
+    # Iniciar MLflow Monitor em background se habilitado
+    enable_monitor = os.getenv("ENABLE_MLFLOW_MONITOR", "false").lower() == "true"
+    monitor_thread = None
+    
+    if enable_monitor:
+        logger.info("Iniciando MLflow Monitor em background...")
+        mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+        polling_interval = int(os.getenv("MLFLOW_POLLING_INTERVAL", "30"))
+        experiments = os.getenv("MLFLOW_MONITORED_EXPERIMENTS", "data-pipeline").split(",")
+        
+        mlflow_monitor.tracking_uri = mlflow_tracking_uri
+        mlflow_monitor.check_interval = polling_interval
+        
+        if mlflow_monitor.initialize():
+            monitor_thread = threading.Thread(
+                target=mlflow_monitor.start_monitoring,
+                args=(experiments, True),
+                daemon=True
+            )
+            monitor_thread.start()
+            logger.info(f"MLflow Monitor iniciado (intervalo: {polling_interval}s)")
+        else:
+            logger.error("Falha ao inicializar MLflow Monitor")
+    else:
+        logger.info("MLflow Monitor desabilitado (use ENABLE_MLFLOW_MONITOR=true para ativar)")
+    
+    logger.info("Serviços inicializados com sucesso")
+    
     yield
-    # Shutdown: cleanup se necessário
+    
+    # Shutdown: parar monitor se estiver rodando
+    if monitor_thread and monitor_thread.is_alive():
+        logger.info("Parando MLflow Monitor...")
+        mlflow_monitor.stop_monitoring()
+        monitor_thread.join(timeout=5)
 
 
 app = FastAPI(
@@ -24,6 +71,7 @@ app = FastAPI(
 app.include_router(upload.router, prefix="/api/v1", tags=["upload"])
 app.include_router(status.router, prefix="/api/v1", tags=["status"])
 app.include_router(processed.router, prefix="/api/v1", tags=["processed"])
+app.include_router(mlflow_sync_router, prefix="/api/v1", tags=["mlflow-sync"])
 
 @app.get("/")
 async def root():
@@ -36,6 +84,9 @@ async def root():
             "status": "/api/v1/status",
             "processed_pipeline": "/api/v1/processed/pipeline",
             "processed_health": "/api/v1/processed/health",
+            "mlflow_sync_start": "/api/v1/mlflow-sync/start",
+            "mlflow_sync_status": "/api/v1/mlflow-sync/status",
+            "mlflow_sync_now": "/api/v1/mlflow-sync/sync-now",
         },
     }
 
