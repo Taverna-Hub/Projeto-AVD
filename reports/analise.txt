@@ -1,0 +1,70 @@
+A análise revela uma clara divisão climática entre as cidades do Sertão (quentes, secas e com alta amplitude térmica) e as do Agreste/Zona da Mata (mais úmidas, ventosas e com temperaturas mais amenas).
+
+1. O "Pólo de Calor e Secura" (Sertão)
+As cidades de Floresta, Cabrobó, Ibimirim e Petrolina formam o núcleo mais extremo da análise.
+
+Floresta é a campeã absoluta de calor, registrando a máxima histórica de 39.7°C.
+Cabrobó destaca-se pela aridez extrema, acumulando impressionantes 15.939 horas de secura crítica (umidade < 30%) ao longo do período. Isso significa que, em grande parte do tempo, a cidade opera em níveis de "alerta" ou "emergência" para a saúde humana.
+Ibimirim apresenta a maior Amplitude Térmica (11.1°C). Isso significa que a cidade sofre o efeito "deserto": esquenta muito rápido durante o dia e esfria bruscamente à noite, exigindo grande adaptação fisiológica da população.
+2. O "Corredor de Vento" (Agreste)
+Surubim confirma sua vocação eólica.
+
+É a cidade com a maior média de velocidade do vento (3.2 m/s constantes), com rajadas frequentes acima de 9.0 m/s.
+Diferente do Sertão, Surubim raramente atinge níveis críticos de secura (apenas 81 horas em 4 anos), mantendo uma umidade média confortável de 73%.
+3. O "Oásis Úmido" (Zona da Mata/Agreste Alto)
+Caruaru, Garanhuns e Palmares mostram um perfil completamente diferente.
+
+Caruaru registrou apenas 1 hora de secura extrema em 4 anos. É uma cidade climaticamente estável e úmida (média de 85%).
+Garanhuns segue o mesmo padrão, com noites de saturação total (nevoeiro) ocorrendo em mais de 23.000 horas.
+Palmares é a mais úmida e estável, típica da Zona da Mata, com temperaturas médias de 24°C e raríssimos eventos de calor extremo.
+4. Conclusões e Impactos Urbanos
+Fator	Cidades Críticas	Impacto / Recomendação
+Saúde Respiratória	Cabrobó, Petrolina, Serra Talhada	Risco altíssimo de doenças respiratórias e desidratação. Necessidade de umidificação artificial constante.
+Conforto Térmico	Floresta, Ibimirim	Exigem isolamento térmico nas construções devido à variação de >10°C no mesmo dia.
+Potencial Energético	Surubim, Petrolina	Surubim para energia eólica (vento constante). Petrolina para solar (baixa nebulosidade/chuva).
+Agricultura	Garanhuns, Caruaru	Clima ideal para culturas que exigem umidade constante e sofrem com o calor excessivo.
+Resumo Final:
+O estado apresenta dois "Brasis" climáticos: um que luta contra a escassez hídrica e o sol escaldante (Sertão de Cabrobó/Floresta) e outro que convive com a umidade excessiva e ventos constantes (Agreste de Surubim/Garanhuns).
+
+
+Abaixo, um resumo estratégico dos dados encontrados e sugestões de gráficos:
+
+1. Ciclo Diário (Ciclo Circadiano)
+Sugestão de Gráfico: Gráfico de Linha ou Área (Eixo X: 0-23h, Eixo Y: Temperatura/Umidade).
+
+Insight: A maioria das cidades tem seu pico de calor entre 16h e 18h, e não ao meio-dia como se imagina.
+Destaque:
+Cabrobó atinge 32°C às 18h com umidade crítica de 36%.
+Caruaru é muito mais estável, variando pouco entre o dia e a noite.
+2. Sazonalidade Mensal
+Sugestão de Gráfico: Heatmap (Mapa de Calor) ou Gráfico de Barras Empilhadas.
+
+Insight: Há uma clara divisão climática.
+Sertão (Floresta, Cabrobó): "Verão eterno", com médias acima de 25°C o ano todo.
+Agreste (Garanhuns, Caruaru): Possuem um "inverno" visível no meio do ano (Junho/Julho) com médias caindo para ~19°C.
+3. Estabilidade Térmica (Boxplots)
+Sugestão de Gráfico: Boxplot (Diagrama de Caixa).
+
+Insight:
+Floresta e Cabrobó têm os maiores extremos (máximas de quase 40°C).
+Garanhuns é a cidade mais "fria" e estável.
+Os modelos de imputação (Leve/Médio/Robusto) mantiveram a distribuição dos dados originais muito bem preservada, o que valida o uso deles.
+4. Correlação (Temperatura x Umidade)
+Sugestão de Gráfico: Scatter Plot (Gráfico de Dispersão).
+
+Insight Crítico:
+Ibimirim e Surubim têm correlação quase perfeita (-0.94), ou seja, física pura: esquentou, secou.
+Cabrobó é uma anomalia com correlação baixíssima (-0.39). Isso sugere que lá pode estar quente e úmido ao mesmo tempo (talvez devido à irrigação ou proximidade com o Rio São Francisco), ou há ruído nos dados.
+5. Perfil de Vento
+Sugestão de Gráfico: Gráfico de Rosca ou Pizza.
+
+Insight:
+Surubim é a cidade dos ventos fortes (quase 10% do tempo com ventos > 5.5 m/s).
+Caruaru e Serra Talhada são cidades de "Brisa Leve" (85%+ do tempo).
+6. Indicadores de Risco (Extremos)
+Sugestão de Gráfico: Gráfico de Radar (Spider Chart).
+
+Insight:
+Cabrobó é a campeã absoluta de "Secura Extrema" (<20% umidade), com mais de 14.000 horas registradas.
+Surubim lidera em "Vento Forte".
+Floresta lidera em "Calor Extremo" (>35°C).
