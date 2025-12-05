@@ -245,6 +245,10 @@ Agora vamos iniciar o processamento automático dos dados no banco Neon:
 #### **3. Iniciar o container do Neon Pipeline**
 
 ```bash
+exit
+```
+
+```bash
 docker-compose up neon_pipeline
 ```
 
