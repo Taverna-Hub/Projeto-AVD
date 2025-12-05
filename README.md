@@ -1,6 +1,6 @@
 # 🌦️ Pipeline de Dados Meteorológicos - INMET
 
-> *Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos com foco em previsão de temperatura horária*
+> _Sistema completo de coleta, processamento, análise e visualização de dados meteorológicos com foco em previsão de temperatura horária_
 
 ## 📋 Descrição Geral
 
@@ -17,11 +17,13 @@ Neste projeto, o objetivo central é estimar a temperatura horária a partir de 
 Com base no conjunto de dados disponibilizado, foi estruturado um processo analítico que inclui preparação dos dados, interpretação dos padrões identificados e construção de um modelo preditivo. O foco do estudo está na capacidade de identificar como cada variável contribui para o comportamento da temperatura ao longo do tempo e de que forma essas relações podem ser utilizadas para gerar previsões confiáveis.
 
 ### Variáveis Utilizadas
+
 - 🌡️ **Temperatura** (°C)
 - 💧 **Umidade** (%)
 - 💨 **Velocidade do Vento** (m/s)
 
 ### Visualizações Principais
+
 - 📈 Curva real vs. prevista da temperatura horária
 - 🌳 Importância das variáveis na árvore de decisão
 - 🔍 Análise de resíduos e performance do modelo
@@ -35,7 +37,7 @@ graph TD
     C --> D[JupyterLab - Análise]
     D --> E[MLFlow - Experimentos]
     E --> F[ThingsBoard - Dashboards]
-    
+
     style A fill:#00acc1
     style B fill:#f9a825
     style C fill:#29b6f6
@@ -87,6 +89,7 @@ Este guia foi feito para que **qualquer pessoa**, mesmo sem conhecimento técnic
 Antes de começar, você precisa instalar alguns programas no seu computador:
 
 #### 1. **Docker Desktop** (Obrigatório)
+
 O Docker é como uma "caixa mágica" que roda todos os serviços do projeto de forma isolada.
 
 - 📥 **Baixe aqui**: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
@@ -96,10 +99,12 @@ O Docker é como uma "caixa mágica" que roda todos os serviços do projeto de f
 - Abra o Docker Desktop e aguarde ele iniciar (ícone fica verde)
 
 #### 2. **Git** (Para baixar o projeto)
+
 - 📥 **Baixe aqui**: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 - Execute o instalador, pode clicar em "Next" em todas as telas
 
 #### 3. **Python 3.10+** (Opcional, para rodar scripts localmente)
+
 - 📥 **Baixe aqui**: [https://www.python.org/downloads/](https://www.python.org/downloads/)
 - **IMPORTANTE**: Marque a opção ✅ "Add Python to PATH" durante a instalação
 
@@ -111,18 +116,20 @@ O Docker é como uma "caixa mágica" que roda todos os serviços do projeto de f
 
 1. Abra o **Prompt de Comando** (Windows) ou **Terminal** (Mac/Linux)
    - No Windows: Pressione `Win + R`, digite `cmd` e pressione Enter
-   
 2. Escolha uma pasta para salvar o projeto (exemplo: Documentos):
+
 ```bash
 cd Documents
 ```
 
 3. Baixe o projeto:
+
 ```bash
 git clone https://github.com/Taverna-Hub/Projeto-AVD.git
 ```
 
 4. Entre na pasta do projeto:
+
 ```bash
 cd Projeto-AVD
 ```
@@ -133,16 +140,18 @@ cd Projeto-AVD
 
 O projeto precisa de algumas "senhas" e configurações para funcionar.
 
-> ⚠️ **IMPORTANTE**: O arquivo `.env` contém credenciais sensíveis (AWS, banco de dados, etc.) e **não está incluído no repositório** por questões de segurança. 
+> ⚠️ **IMPORTANTE**: O arquivo `.env` contém credenciais sensíveis (AWS, banco de dados, etc.) e **não está incluído no repositório** por questões de segurança.
 >
 > 📧 **Apenas o professor da disciplina terá acesso ao arquivo `.env` completo do projeto.** Solicite as credenciais diretamente com ele.
 
 1. Após receber o arquivo `.env` do professor, coloque-o na pasta raiz do projeto (mesma pasta do `docker-compose.yml`)
 
 2. Verifique se o arquivo está no lugar certo:
+
 ```bash
 dir .env
 ```
+
 Se aparecer o arquivo, está tudo certo!
 
 ---
@@ -152,6 +161,7 @@ Se aparecer o arquivo, está tudo certo!
 1. **Certifique-se que o Docker Desktop está aberto e rodando** (ícone verde na barra de tarefas)
 
 2. No terminal, dentro da pasta do projeto, enquanto o docker estiver rodando,execute:
+
 ```bash
 docker-compose up -d
 ```
@@ -159,9 +169,11 @@ docker-compose up -d
 3. **Aguarde!** ⏳ Na primeira vez, pode demorar de 5 a 15 minutos para baixar tudo.
 
 4. Para verificar se está tudo rodando:
+
 ```bash
 docker-compose ps
 ```
+
 Você deve ver vários serviços com status "Up" ou "running".
 
 ---
@@ -170,15 +182,15 @@ Você deve ver vários serviços com status "Up" ou "running".
 
 Após iniciar, abra seu navegador e acesse:
 
-| 🌐 Serviço | 🔗 Link | 📝 O que é? |
-|-----------|---------|-------------|
-| **ThingsBoard** | [http://localhost:9090](http://localhost:9090) | Dashboard IoT - Visualize os dados das estações |
-| **JupyterLab** | [http://localhost:8888](http://localhost:8888) | Notebooks Python - Análise de dados |
-| **FastAPI** | [http://localhost:8060/docs](http://localhost:8060/docs) | API - Documentação interativa |
-| **MLflow** | [http://localhost:5000](http://localhost:5000) | Experimentos de Machine Learning |
-
+| 🌐 Serviço      | 🔗 Link                                                  | 📝 O que é?                                     |
+| --------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| **ThingsBoard** | [http://localhost:9090](http://localhost:9090)           | Dashboard IoT - Visualize os dados das estações |
+| **JupyterLab**  | [http://localhost:8888](http://localhost:8888)           | Notebooks Python - Análise de dados             |
+| **FastAPI**     | [http://localhost:8060/docs](http://localhost:8060/docs) | API - Documentação interativa                   |
+| **MLflow**      | [http://localhost:5000](http://localhost:5000)           | Experimentos de Machine Learning                |
 
 ##### 🔐 Login no ThingsBoard:
+
 - **Usuário**: `tenant@thingsboard.org`
 - **Senha**: `tenant`
 
@@ -189,10 +201,20 @@ Após iniciar, abra seu navegador e acesse:
 Após os serviços estarem rodando, você precisa carregar os dados. Execute os comandos abaixo **em ordem**:
 
 #### **1. Criar os devices de dados brutos no ThingsBoard**
+Acesse o link do INMET e baixe os dados meteorológicos das cidades (menos Recife) de 2020 até 2024: https://portal.inmet.gov.br/dadoshistoricos
+Adicione na pasta /data do projeto os arquivos extraídos.
+
+Crie um ambiente virtual e instale as dependências:
 
 ```bash
-pip install dotenv
+python -m venv venv
+venv\Scripts\activate   # Windows
+# ou: source venv/bin/activate   # Linux/Mac
+
+pip install -r fastapi/requirements.txt
 ```
+
+Depois execute o script:
 
 ```bash
 python fastapi/scripts/setup_devices.py
@@ -223,6 +245,7 @@ docker-compose up neon_pipeline
 ```
 
 Este comando inicia um container que automaticamente:
+
 - Conecta ao bucket S3
 - Lê os arquivos CSV das estações
 - Processa e insere os dados no banco de dados Neon
@@ -290,6 +313,7 @@ python fastapi/scripts/send_telemetry_to_devices.py
 ```
 
 Este script:
+
 - Lê os dados processados do S3
 - Envia as telemetrias para os devices processados no ThingsBoard
 - Permite visualizar os dados tratados nos dashboards
@@ -340,18 +364,18 @@ Se os dados **não aparecerem** nos widgets do dashboard, provavelmente é um **
 
 ### ✅ Resumo da Ordem de Execução
 
-| Etapa | Comando | O que faz |
-|-------|---------|-----------|
-| 1 | `python fastapi/scripts/setup_devices.py` | Cria devices de dados brutos |
-| 2 | `python fastapi/scripts/test_s3_upload.py` | Envia CSVs para o S3 |
-| 3 | `docker-compose up neon_pipeline` | Processa dados no Neon |
-| 4 | Acessar `localhost:8888` | Abrir JupyterLab |
-| 5 | Executar `01_tratamento_dados.ipynb` | Tratar dados |
-| 6 | Executar `02_imputacao_dados.ipynb` | Imputar dados + MLflow |
-| 7 | `python fastapi/scripts/create_processed_devices.py` | Cria devices processados |
-| 8 | `python fastapi/scripts/send_telemetry_to_devices.py` | Popula devices processados |
-| 9 | `python fastapi/scripts/import_dashboards.py` | Importa dashboards |
-| 10 | Acessar `localhost:9090` | Visualizar dashboards |
+| Etapa | Comando                                               | O que faz                    |
+| ----- | ----------------------------------------------------- | ---------------------------- |
+| 1     | `python fastapi/scripts/setup_devices.py`             | Cria devices de dados brutos |
+| 2     | `python fastapi/scripts/test_s3_upload.py`            | Envia CSVs para o S3         |
+| 3     | `docker-compose up neon_pipeline`                     | Processa dados no Neon       |
+| 4     | Acessar `localhost:8888`                              | Abrir JupyterLab             |
+| 5     | Executar `01_tratamento_dados.ipynb`                  | Tratar dados                 |
+| 6     | Executar `02_imputacao_dados.ipynb`                   | Imputar dados + MLflow       |
+| 7     | `python fastapi/scripts/create_processed_devices.py`  | Cria devices processados     |
+| 8     | `python fastapi/scripts/send_telemetry_to_devices.py` | Popula devices processados   |
+| 9     | `python fastapi/scripts/import_dashboards.py`         | Importa dashboards           |
+| 10    | Acessar `localhost:9090`                              | Visualizar dashboards        |
 
 ---
 
@@ -364,6 +388,7 @@ docker-compose down
 ```
 
 Para parar E apagar todos os dados (começar do zero):
+
 ```bash
 docker-compose down -v
 ```
@@ -372,13 +397,13 @@ docker-compose down -v
 
 ### 🔄 Comandos Úteis do Dia a Dia
 
-| Comando | O que faz |
-|---------|-----------|
-| `docker-compose up -d` | Inicia todos os serviços |
-| `docker-compose down` | Para todos os serviços |
-| `docker-compose ps` | Mostra o status dos serviços |
-| `docker-compose logs -f` | Mostra os logs em tempo real |
-| `docker-compose restart` | Reinicia todos os serviços |
+| Comando                           | O que faz                         |
+| --------------------------------- | --------------------------------- |
+| `docker-compose up -d`            | Inicia todos os serviços          |
+| `docker-compose down`             | Para todos os serviços            |
+| `docker-compose ps`               | Mostra o status dos serviços      |
+| `docker-compose logs -f`          | Mostra os logs em tempo real      |
+| `docker-compose restart`          | Reinicia todos os serviços        |
 | `docker-compose logs thingsboard` | Ver logs de um serviço específico |
 
 ---
@@ -386,21 +411,27 @@ docker-compose down -v
 ### ❓ Problemas Comuns e Soluções
 
 #### ❌ "Docker não está rodando"
+
 - Abra o Docker Desktop e aguarde ele iniciar completamente (ícone fica verde)
 
 #### ❌ "Porta já está em uso"
+
 - Algum outro programa está usando a porta. Feche outros programas ou reinicie o computador.
 
 #### ❌ "Erro de conexão com ThingsBoard"
+
 - Aguarde mais alguns minutos. O ThingsBoard demora para iniciar completamente.
 - Verifique se o container está saudável: `docker-compose ps`
 
 #### ❌ "Python não encontrado"
+
 - Reinstale o Python marcando a opção "Add to PATH"
 - Ou use: `python3` ao invés de `python`
 
 #### ❌ "Módulo não encontrado" ao rodar scripts Python
+
 - Instale as dependências:
+
 ```bash
 pip install -r fastapi/requirements.txt
 pip install python-dotenv boto3 psycopg2-binary pandas
@@ -432,6 +463,7 @@ docker-compose down
 ## 🔄 Fluxo de Funcionamento para Previsão de Temperatura Horária
 
 ### 1. Coleta de Dados para Modelo
+
 ```python
 # Exemplo de requisição para ingestão com variáveis de temperatura horária
 import requests
@@ -440,7 +472,7 @@ payload = {
     "estacao": "A001",
     "data": "2025-01-15",
     "temperatura": 28.5,      # Variável preditora
-    "umidade": 75,            # Variável preditora  
+    "umidade": 75,            # Variável preditora
     "velocidade_vento": 3.2,  # Variável preditora
     "temperatura_horaria": 30.1  # Variável alvo (para treinamento)
 }
@@ -449,12 +481,14 @@ response = requests.post("http://localhost:8000/dados", json=payload)
 ```
 
 ### 2. Processamento Específico para Temperatura Horária
+
 - Cálculo da temperatura horária usando dados das estações do INMET
 - Feature engineering: interações entre temperatura, umidade e vento
 - Normalização das variáveis climáticas
 - Split temporal para validação
 
 ### 3. Modelagem Preditiva da Temperatura Horária
+
 - **Algoritmos**: Random Forest, XGBoost, Regressão Linear
 - **Variáveis**: Temperatura, Umidade, Velocidade do Vento
 - **Métricas**: MAE, RMSE, R², MAPE
@@ -464,13 +498,14 @@ response = requests.post("http://localhost:8000/dados", json=payload)
 
 ### Abordagens de Machine Learning
 
-| Técnica | Objetivo | Métricas | Variáveis |
-|---------|----------|----------|-----------|
-| **Regressão Random Forest** | Previsão de temperatura horária | MAE, RMSE, R² | Temp, Umidade, Vento |
-| **Análise de Importância** | Rankear variáveis influentes | Feature Importance | Todas as features |
-| **Visualização** | Real vs. Previsto | Gráficos comparativos | Temperatura horária |
+| Técnica                     | Objetivo                        | Métricas              | Variáveis            |
+| --------------------------- | ------------------------------- | --------------------- | -------------------- |
+| **Regressão Random Forest** | Previsão de temperatura horária | MAE, RMSE, R²         | Temp, Umidade, Vento |
+| **Análise de Importância**  | Rankear variáveis influentes    | Feature Importance    | Todas as features    |
+| **Visualização**            | Real vs. Previsto               | Gráficos comparativos | Temperatura horária  |
 
 ### Exemplo de Código para Modelagem
+
 ```python
 # Modelo de temperatura horária
 from sklearn.ensemble import RandomForestRegressor
@@ -491,23 +526,27 @@ modelo_temperatura.fit(X, y)
 ## 📊 Dashboards e Visualizações - Temperatura Horária
 
 ### Trendz Analytics - Foco no Tema
+
 - **Dashboard Temperatura Horária**: Comparação real vs. prevista
 - **Importância das Variáveis**: Gráfico de importância da árvore
 - **Análise de Resíduos**: Distribuição dos erros de previsão
 - **Temperatura por Condições**: Heatmaps de temperatura vs. temperatura/umidade
 
 ### Visualizações Específicas
+
 1. **Curva Real vs. Prevista**: Linhas sobrepostas mostrando acurácia do modelo
 2. **Importância na Árvore**: Bar plot com contribuição de cada variável
 3. **Matriz de Correlação**: Relação entre variáveis climáticas
 4. **Distribuição de Erros**: Histograma dos resíduos da previsão
 
 ### Acesso aos Dashboards
+
 1. Acesse http://localhost:8080
 2. Navegue para o dashboard "Temperatura Horária"
 3. Explore as visualizações interativas
 
 ## 👥 Autores do Projeto
+
 <div align="center">
 <table>
   <tr>
@@ -582,6 +621,6 @@ modelo_temperatura.fit(X, y)
 
 **🌡️ Previsão da temperatura, compreensão do clima**
 
-*CESAR School • Análise e Visualização de Dados • 2025.2*
+_CESAR School • Análise e Visualização de Dados • 2025.2_
 
 </div>
