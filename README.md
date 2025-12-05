@@ -191,6 +191,10 @@ Após os serviços estarem rodando, você precisa carregar os dados. Execute os 
 #### **1. Criar os devices de dados brutos no ThingsBoard**
 
 ```bash
+pip install dotenv
+```
+
+```bash
 python fastapi/scripts/setup_devices.py
 ```
 
