@@ -204,20 +204,22 @@ Após os serviços estarem rodando, você precisa carregar os dados. Execute os 
 Acesse o link do INMET e baixe os dados meteorológicos das cidades (menos Recife) de 2020 até 2024: https://portal.inmet.gov.br/dadoshistoricos
 Adicione na pasta /data do projeto os arquivos extraídos.
 
-Crie um ambiente virtual e instale as dependências:
+Acesse o container do FastAPI para executar os scripts:
 
 ```bash
-python -m venv venv
-venv\Scripts\activate   # Windows
-# ou: source venv/bin/activate   # Linux/Mac
-
-pip install -r fastapi/requirements.txt
+docker compose exec -it fastapi-app bash
 ```
 
-Depois execute o script:
+Dentro do container, navegue até a pasta de scripts:
 
 ```bash
-python fastapi/scripts/setup_devices.py
+cd src/scripts
+```
+
+Agora você pode executar os scripts diretamente:
+
+```bash
+python3 setup_devices.py
 ```
 
 Isso criará os 12 devices (um para cada estação meteorológica) no ThingsBoard.
@@ -226,8 +228,10 @@ Isso criará os 12 devices (um para cada estação meteorológica) no ThingsBoar
 
 #### **2. Enviar os dados para o bucket S3**
 
+Ainda dentro do container (pasta `src/scripts`):
+
 ```bash
-python fastapi/scripts/test_s3_upload.py
+python3 test_s3_upload.py
 ```
 
 Isso enviará os arquivos CSV de todas as 12 estações (2020-2024) para o bucket S3 na Amazon.
@@ -298,8 +302,17 @@ Agora vamos criar os devices com os dados já processados/tratados:
 
 #### **7. Criar os devices processados no ThingsBoard**
 
+Acesse o container do FastAPI (se ainda não estiver):
+
 ```bash
-python fastapi/scripts/create_processed_devices.py
+docker compose exec -it fastapi-app bash
+cd src/scripts
+```
+
+Execute o script:
+
+```bash
+python3 create_processed_devices.py
 ```
 
 Isso criará novos devices no ThingsBoard para armazenar os dados após o tratamento e imputação.
@@ -308,8 +321,10 @@ Isso criará novos devices no ThingsBoard para armazenar os dados após o tratam
 
 #### **8. Popular os devices com dados processados**
 
+Ainda dentro do container (pasta `src/scripts`):
+
 ```bash
-python fastapi/scripts/send_telemetry_to_devices.py
+python3 send_telemetry_to_devices.py
 ```
 
 Este script:
@@ -326,11 +341,13 @@ Agora vamos importar os dashboards pré-configurados e visualizar os dados no Th
 
 #### **9. Importar os dashboards no ThingsBoard**
 
+Ainda dentro do container (pasta `src/scripts`):
+
 ```bash
-python fastapi/scripts/import_dashboards.py
+python3 import_dashboards.py
 ```
 
-Este script importa automaticamente todos os dashboards disponíveis na pasta `dashboard/` para o ThingsBoard.
+Este script importa automaticamente todos os dashboards disponíveis na pasta `reports/` para o ThingsBoard.
 
 ---
 
@@ -366,15 +383,16 @@ Se os dados **não aparecerem** nos widgets do dashboard, provavelmente é um **
 
 | Etapa | Comando                                               | O que faz                    |
 | ----- | ----------------------------------------------------- | ---------------------------- |
-| 1     | `python fastapi/scripts/setup_devices.py`             | Cria devices de dados brutos |
-| 2     | `python fastapi/scripts/test_s3_upload.py`            | Envia CSVs para o S3         |
+| 0     | `docker compose exec -it fastapi-app bash` + `cd src/scripts` | Acessar container do FastAPI |
+| 1     | `python3 setup_devices.py`                            | Cria devices de dados brutos |
+| 2     | `python3 test_s3_upload.py`                           | Envia CSVs para o S3         |
 | 3     | `docker-compose up neon_pipeline`                     | Processa dados no Neon       |
 | 4     | Acessar `localhost:8888`                              | Abrir JupyterLab             |
 | 5     | Executar `01_tratamento_dados.ipynb`                  | Tratar dados                 |
 | 6     | Executar `02_imputacao_dados.ipynb`                   | Imputar dados + MLflow       |
-| 7     | `python fastapi/scripts/create_processed_devices.py`  | Cria devices processados     |
-| 8     | `python fastapi/scripts/send_telemetry_to_devices.py` | Popula devices processados   |
-| 9     | `python fastapi/scripts/import_dashboards.py`         | Importa dashboards           |
+| 7     | `python3 create_processed_devices.py`                 | Cria devices processados     |
+| 8     | `python3 send_telemetry_to_devices.py`                | Popula devices processados   |
+| 9     | `python3 import_dashboards.py`                        | Importa dashboards           |
 | 10    | Acessar `localhost:9090`                              | Visualizar dashboards        |
 
 ---

@@ -97,6 +97,7 @@ services:
       - TB_HOST=${TB_HOST:-thingsboard}
     volumes:
       - ./data:/app/data:ro
+      - ./.env:/app/.env:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8060/health"]
@@ -211,4 +212,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
