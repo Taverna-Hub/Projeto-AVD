@@ -8,15 +8,18 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Adicionar o diretório raiz ao path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# Adicionar o diretório fastapi ao path
+fastapi_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(fastapi_dir))
 
-from fastapi.services.s3_service import create_s3_service
-from fastapi.services.device_manager_service import ESTACOES_METEOROLOGICAS
+from services.s3_service import create_s3_service
+from services.device_manager_service import ESTACOES_METEOROLOGICAS
+
+# Diretório raiz do projeto
+project_root = fastapi_dir.parent
 
 # Carregar variáveis de ambiente
-env_path = project_root / "fastapi" / ".env"
+env_path = fastapi_dir / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 else:

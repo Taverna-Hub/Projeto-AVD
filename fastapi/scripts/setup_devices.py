@@ -8,10 +8,19 @@ import sys
 import logging
 import argparse
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Adicionar diretório fastapi ao path
-fastapi_dir = Path(__file__).parent.parent / "fastapi"
+fastapi_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(fastapi_dir))
+
+# Diretório raiz do projeto
+project_root = fastapi_dir.parent
+
+# Carregar variáveis de ambiente
+env_path = fastapi_dir / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 from services.thingsboard_service import ThingsBoardService
 from services.device_manager_service import create_device_manager
@@ -48,12 +57,12 @@ def main():
     )
     parser.add_argument(
         "--data-dir",
-        default=str(Path(__file__).parent.parent / "data"),
+        default=str(project_root / "data"),
         help="Diretório com arquivos CSV"
     )
     parser.add_argument(
         "--notebooks-dir",
-        default=str(Path(__file__).parent.parent / "notebooks"),
+        default=str(project_root / "notebooks"),
         help="Diretório com notebooks e metadados"
     )
     parser.add_argument(
