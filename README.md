@@ -39,27 +39,6 @@ graph TD
     style E fill:#ab47bc
     style F fill:#ef5350
 ```
-
-### Fluxo de Dados para Sensação Térmica
-1. **Ingestão**: API REST coleta dados meteorológicos via FastAPI
-2. **Armazenamento**: Dados brutos salvos no MinIO (S3-compatible)
-3. **Processamento**: Cálculo de sensação térmica e estruturação no Snowflake
-4. **Análise**: Feature engineering e modelagem em Jupyter Notebooks
-5. **MLOps**: Registro e tracking de experimentos de sensação térmica com MLFlow
-6. **Visualização**: Dashboards interativos com comparação real vs. previsto
-
-## 🛠️ Tecnologias Utilizadas
-
-| Categoria | Tecnologias |
-|-----------|-------------|
-| **Backend** | FastAPI, Python 3.9+, Uvicorn |
-| **Armazenamento** | MinIO, Snowflake |
-| **Análise** | JupyterLab, Pandas, Scikit-learn, NumPy |
-| **MLOps** | MLFlow |
-| **Visualização** | Trendz Analytics, Matplotlib, Seaborn |
-| **Orquestração** | Docker, Docker Compose |
-| **Linguagens** | Python, SQL |
-
 ## 📁 Estrutura do Repositório
 
 ```
@@ -92,51 +71,308 @@ pipeline-meteorologico/
 
 ## 🚀 Como Executar o Projeto
 
-### Pré-requisitos
-- Docker 20.10+
-- Docker Compose 2.0+
-- 4GB de RAM disponível
-- Portas 8000, 8888, 5000, 9000 liberadas
+Este guia foi feito para que **qualquer pessoa**, mesmo sem conhecimento técnico, consiga rodar o projeto. Siga os passos com calma!
 
-### Execução Completa
+---
 
+### 📋 Pré-requisitos (O que você precisa ter instalado)
+
+Antes de começar, você precisa instalar alguns programas no seu computador:
+
+#### 1. **Docker Desktop** (Obrigatório)
+O Docker é como uma "caixa mágica" que roda todos os serviços do projeto de forma isolada.
+
+- 📥 **Baixe aqui**: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+- Clique em "Download for Windows" (ou Mac, se for o caso)
+- Execute o instalador e siga as instruções na tela
+- **Após instalar, reinicie o computador**
+- Abra o Docker Desktop e aguarde ele iniciar (ícone fica verde)
+
+#### 2. **Git** (Para baixar o projeto)
+- 📥 **Baixe aqui**: [https://git-scm.com/downloads](https://git-scm.com/downloads)
+- Execute o instalador, pode clicar em "Next" em todas as telas
+
+#### 3. **Python 3.10+** (Opcional, para rodar scripts localmente)
+- 📥 **Baixe aqui**: [https://www.python.org/downloads/](https://www.python.org/downloads/)
+- **IMPORTANTE**: Marque a opção ✅ "Add Python to PATH" durante a instalação
+
+---
+
+### 🔧 Passo a Passo para Rodar o Projeto
+
+#### **Passo 1: Baixar o Projeto**
+
+1. Abra o **Prompt de Comando** (Windows) ou **Terminal** (Mac/Linux)
+   - No Windows: Pressione `Win + R`, digite `cmd` e pressione Enter
+   
+2. Escolha uma pasta para salvar o projeto (exemplo: Documentos):
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/pipeline-meteorologico.git
-cd pipeline-meteorologico
+cd Documents
+```
 
-# Inicie todos os serviços
+3. Baixe o projeto:
+```bash
+git clone https://github.com/Taverna-Hub/Projeto-AVD.git
+```
+
+4. Entre na pasta do projeto:
+```bash
+cd Projeto-AVD
+```
+
+---
+
+#### **Passo 2: Configurar as Variáveis de Ambiente**
+
+O projeto precisa de algumas "senhas" e configurações para funcionar.
+
+> ⚠️ **IMPORTANTE**: O arquivo `.env` contém credenciais sensíveis (AWS, banco de dados, etc.) e **não está incluído no repositório** por questões de segurança. 
+>
+> 📧 **Apenas o professor da disciplina terá acesso ao arquivo `.env` completo do projeto.** Solicite as credenciais diretamente com ele.
+
+1. Após receber o arquivo `.env` do professor, coloque-o na pasta raiz do projeto (mesma pasta do `docker-compose.yml`)
+
+2. Verifique se o arquivo está no lugar certo:
+```bash
+dir .env
+```
+Se aparecer o arquivo, está tudo certo!
+
+---
+
+#### **Passo 3: Iniciar os Serviços (A Parte Mágica! ✨)**
+
+1. **Certifique-se que o Docker Desktop está aberto e rodando** (ícone verde na barra de tarefas)
+
+2. No terminal, dentro da pasta do projeto, execute:
+```bash
 docker-compose up -d
+```
 
-# Verifique o status dos containers
+3. **Aguarde!** ⏳ Na primeira vez, pode demorar de 5 a 15 minutos para baixar tudo.
+
+4. Para verificar se está tudo rodando:
+```bash
 docker-compose ps
 ```
+Você deve ver vários serviços com status "Up" ou "running".
 
-### Acesso aos Serviços
+---
 
-| Serviço | URL | Porta | Descrição |
-|---------|-----|-------|-----------|
-| **FastAPI** | http://localhost:8060/docs | 8060 | API de ingestão de dados |
-| **JupyterLab** | http://localhost:8888 | 8888 | Ambiente de análise (senha: avd2025) |
-| **MLFlow** | http://localhost:5000 | 5000 | Tracking de experimentos |
-| **MinIO** | http://localhost:9000 | 9000 | Armazenamento de objetos |
-| **Trendz** | http://localhost:8080 | 8080 | Dashboards interativos |
+#### **Passo 4: Acessar os Serviços**
 
-### Comandos Úteis
+Após iniciar, abra seu navegador e acesse:
+
+| 🌐 Serviço | 🔗 Link | 📝 O que é? |
+|-----------|---------|-------------|
+| **ThingsBoard** | [http://localhost:9090](http://localhost:9090) | Dashboard IoT - Visualize os dados das estações |
+| **JupyterLab** | [http://localhost:8888](http://localhost:8888) | Notebooks Python - Análise de dados |
+| **FastAPI** | [http://localhost:8060/docs](http://localhost:8060/docs) | API - Documentação interativa |
+| **MLflow** | [http://localhost:5000](http://localhost:5000) | Experimentos de Machine Learning |
+| **Trendz** | [http://localhost:8889](http://localhost:8889) | Analytics avançado |
+
+##### 🔐 Login no ThingsBoard:
+- **Usuário**: `tenant@thingsboard.org`
+- **Senha**: `tenant`
+
+---
+
+### 📊 Carregar os Dados nas Plataformas
+
+Após os serviços estarem rodando, você precisa carregar os dados. Execute os comandos abaixo **em ordem**:
+
+#### **1. Criar os devices de dados brutos no ThingsBoard**
 
 ```bash
-# Parar todos os serviços
-docker-compose down
-
-# Ver logs em tempo real
-docker-compose logs -f
-
-# Reiniciar um serviço específico
-docker-compose restart fastapi
-
-# Acessar container específico
-docker-compose exec jupyterlab bash
+python scripts/setup_devices.py
 ```
+
+Isso criará os 12 devices (um para cada estação meteorológica) no ThingsBoard.
+
+---
+
+#### **2. Enviar os dados para o bucket S3**
+
+```bash
+python scripts/test_s3_upload.py
+```
+
+Isso enviará os arquivos CSV de todas as 12 estações (2020-2024) para o bucket S3 na Amazon.
+
+---
+
+### 🔄 Pipeline do Neon (Processamento Automático)
+
+Agora vamos iniciar o processamento automático dos dados no banco Neon:
+
+#### **3. Iniciar o container do Neon Pipeline**
+
+```bash
+docker-compose up neon_pipeline
+```
+
+Este comando inicia um container que automaticamente:
+- Conecta ao bucket S3
+- Lê os arquivos CSV das estações
+- Processa e insere os dados no banco de dados Neon
+
+> 💡 **Dica**: Aguarde até ver mensagens de sucesso no terminal antes de prosseguir.
+
+---
+
+### 📓 Execução dos Notebooks (Tratamento e Imputação)
+
+Agora vamos executar os notebooks para tratar os dados e treinar os modelos de Machine Learning:
+
+#### **4. Acessar o JupyterLab**
+
+1. Abra seu navegador
+2. Acesse: [http://localhost:8888](http://localhost:8888)
+3. Você verá a interface do JupyterLab
+
+---
+
+#### **5. Executar o Notebook de Tratamento de Dados**
+
+1. No JupyterLab, navegue até a pasta `work/`
+2. Abra o arquivo `01_tratamento_dados.ipynb`
+3. Execute todas as células do notebook:
+   - Clique em **Run** → **Run All Cells**
+   - Ou use o atalho: `Ctrl + Shift + Enter`
+4. **Aguarde** todas as células terminarem de executar (pode demorar alguns minutos)
+
+> 📝 Este notebook faz a limpeza e preparação dos dados meteorológicos.
+
+---
+
+#### **6. Executar o Notebook de Imputação de Dados**
+
+1. Após o notebook 01 terminar, abra o arquivo `02_imputacao_dados.ipynb`
+2. Execute todas as células do notebook:
+   - Clique em **Run** → **Run All Cells**
+3. **Aguarde** a execução completa
+
+> 📝 Este notebook treina modelos de Machine Learning para preencher dados faltantes e envia os logs/modelos para o MLflow.
+
+> 💡 **Dica**: Você pode acompanhar os experimentos em tempo real acessando o MLflow em [http://localhost:5000](http://localhost:5000)
+
+---
+
+### 📈 Devices Processados (Dados Tratados)
+
+Agora vamos criar os devices com os dados já processados/tratados:
+
+#### **7. Criar os devices processados no ThingsBoard**
+
+```bash
+python fastapi/scripts/create_processed_devices.py
+```
+
+Isso criará novos devices no ThingsBoard para armazenar os dados após o tratamento e imputação.
+
+---
+
+#### **8. Popular os devices com dados processados**
+
+```bash
+python fastapi/scripts/send_telemetry_to_devices.py
+```
+
+Este script:
+- Lê os dados processados do S3
+- Envia as telemetrias para os devices processados no ThingsBoard
+- Permite visualizar os dados tratados nos dashboards
+
+---
+
+### ✅ Resumo da Ordem de Execução
+
+| Etapa | Comando | O que faz |
+|-------|---------|-----------|
+| 1 | `python scripts/setup_devices.py` | Cria devices de dados brutos |
+| 2 | `python scripts/test_s3_upload.py` | Envia CSVs para o S3 |
+| 3 | `docker-compose up neon_pipeline` | Processa dados no Neon |
+| 4 | Acessar `localhost:8888` | Abrir JupyterLab |
+| 5 | Executar `01_tratamento_dados.ipynb` | Tratar dados |
+| 6 | Executar `02_imputacao_dados.ipynb` | Imputar dados + MLflow |
+| 7 | `python fastapi/scripts/create_processed_devices.py` | Cria devices processados |
+| 8 | `python fastapi/scripts/send_telemetry_to_devices.py` | Popula devices processados |
+
+---
+
+### 🛑 Como Parar o Projeto
+
+Quando terminar de usar, você pode parar todos os serviços:
+
+```bash
+docker-compose down
+```
+
+Para parar E apagar todos os dados (começar do zero):
+```bash
+docker-compose down -v
+```
+
+---
+
+### 🔄 Comandos Úteis do Dia a Dia
+
+| Comando | O que faz |
+|---------|-----------|
+| `docker-compose up -d` | Inicia todos os serviços |
+| `docker-compose down` | Para todos os serviços |
+| `docker-compose ps` | Mostra o status dos serviços |
+| `docker-compose logs -f` | Mostra os logs em tempo real |
+| `docker-compose restart` | Reinicia todos os serviços |
+| `docker-compose logs thingsboard` | Ver logs de um serviço específico |
+
+---
+
+### ❓ Problemas Comuns e Soluções
+
+#### ❌ "Docker não está rodando"
+- Abra o Docker Desktop e aguarde ele iniciar completamente (ícone fica verde)
+
+#### ❌ "Porta já está em uso"
+- Algum outro programa está usando a porta. Feche outros programas ou reinicie o computador.
+
+#### ❌ "Erro de conexão com ThingsBoard"
+- Aguarde mais alguns minutos. O ThingsBoard demora para iniciar completamente.
+- Verifique se o container está saudável: `docker-compose ps`
+
+#### ❌ "Python não encontrado"
+- Reinstale o Python marcando a opção "Add to PATH"
+- Ou use: `python3` ao invés de `python`
+
+#### ❌ "Módulo não encontrado" ao rodar scripts Python
+- Instale as dependências:
+```bash
+pip install -r fastapi/requirements.txt
+pip install python-dotenv boto3 psycopg2-binary pandas
+```
+
+---
+
+### 📱 Resumo Rápido (Para quem tem pressa)
+
+```bash
+# 1. Clone o projeto
+git clone https://github.com/Taverna-Hub/Projeto-AVD.git
+cd Projeto-AVD
+
+# 2. Inicie os serviços
+docker-compose up -d
+
+# 3. Aguarde 5-10 minutos e acesse:
+# ThingsBoard: http://localhost:9090 (login: tenant@thingsboard.org / tenant)
+# JupyterLab: http://localhost:8888
+# API Docs: http://localhost:8060/docs
+
+# 4. Para parar
+docker-compose down
+```
+
+---
 
 ## 🔄 Fluxo de Funcionamento para Sensação Térmica
 
