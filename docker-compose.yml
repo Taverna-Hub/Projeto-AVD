@@ -98,6 +98,7 @@ services:
     volumes:
       - ./data:/app/data:ro
       - ./.env:/app/.env:ro
+      - ./reports:/app/reports:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8060/health"]

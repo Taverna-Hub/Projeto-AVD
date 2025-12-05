@@ -309,7 +309,7 @@ Agora vamos criar os devices com os dados já processados/tratados:
 Acesse o container do FastAPI (se ainda não estiver):
 
 ```bash
-docker compose exec -it fastapi-app bash
+docker exec -it fastapi-app bash
 cd src/scripts
 ```
 
