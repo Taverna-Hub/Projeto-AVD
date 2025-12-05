@@ -10,6 +10,7 @@ import boto3
 import pandas as pd
 import logging
 import time
+import socket
 from io import StringIO
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -360,14 +361,28 @@ def send_data_to_devices(
     return results
 
 
+def get_thingsboard_host() -> str:
+    """
+    Detecta se está rodando dentro ou fora do Docker.
+    Retorna o hostname apropriado para o ThingsBoard.
+    """
+    try:
+        # Tenta resolver o hostname 'thingsboard' (usado dentro do Docker)
+        socket.gethostbyname('thingsboard')
+        return "thingsboard"
+    except socket.gaierror:
+        # Se falhar, está fora do Docker, usa localhost
+        return "localhost"
+
+
 def main():
     """Função principal do script."""
     
     # Carregar variáveis de ambiente
     load_dotenv()
     
-    # Configurações do ThingsBoard
-    TB_HOST = os.getenv('TB_HOST', 'thingsboard')
+    # Configurações do ThingsBoard (auto-detecta Docker ou localhost)
+    TB_HOST = get_thingsboard_host()
     TB_PORT = int(os.getenv('TB_PORT', '9090'))
     TB_USERNAME = os.getenv('TB_USERNAME', 'tenant@thingsboard.org')
     TB_PASSWORD = os.getenv('TB_PASSWORD', 'tenant')
