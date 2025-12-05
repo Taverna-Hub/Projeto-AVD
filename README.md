@@ -44,26 +44,6 @@ graph TD
     style F fill:#ef5350
 ```
 
-### Fluxo de Dados para Sensação Térmica
-1. **Ingestão**: API REST coleta dados meteorológicos via FastAPI
-2. **Armazenamento**: Dados brutos salvos no MinIO (S3-compatible)
-3. **Processamento**: Cálculo de sensação térmica e estruturação no Snowflake
-4. **Análise**: Feature engineering e modelagem em Jupyter Notebooks
-5. **MLOps**: Registro e tracking de experimentos de sensação térmica com MLFlow
-6. **Visualização**: Dashboards interativos com comparação real vs. previsto
-
-## 🛠️ Tecnologias Utilizadas
-
-| Categoria | Tecnologias |
-|-----------|-------------|
-| **Backend** | FastAPI, Python 3.9+, Uvicorn |
-| **Armazenamento** | MinIO, Snowflake |
-| **Análise** | JupyterLab, Pandas, Scikit-learn, NumPy |
-| **MLOps** | MLFlow |
-| **Visualização** | Trendz Analytics, Matplotlib, Seaborn |
-| **Orquestração** | Docker, Docker Compose |
-| **Linguagens** | Python, SQL |
-
 ## 📁 Estrutura do Repositório
 
 ```
