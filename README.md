@@ -207,7 +207,7 @@ Adicione na pasta /data do projeto os arquivos extraídos.
 Acesse o container do FastAPI para executar os scripts:
 
 ```bash
-docker compose exec -it fastapi-app bash
+docker exec -it fastapi-app bash
 ```
 
 Dentro do container, navegue até a pasta de scripts:

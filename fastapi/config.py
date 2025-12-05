@@ -35,10 +35,11 @@ class Settings(BaseSettings):
     # Trendz Configuration
     TRENDZ_URL: str = "http://trendz:8888"
 
-    class Config:
-        env_file = "/app/.env"
-        case_sensitive = True
-        extra = "ignore"
+    model_config = {
+        "env_file": "/app/.env",
+        "case_sensitive": True,
+        "extra": "ignore"
+    }
 
     def get_data_directory(self) -> Path:
         """
