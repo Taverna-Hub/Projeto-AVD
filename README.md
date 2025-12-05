@@ -176,7 +176,7 @@ Após iniciar, abra seu navegador e acesse:
 | **JupyterLab** | [http://localhost:8888](http://localhost:8888) | Notebooks Python - Análise de dados |
 | **FastAPI** | [http://localhost:8060/docs](http://localhost:8060/docs) | API - Documentação interativa |
 | **MLflow** | [http://localhost:5000](http://localhost:5000) | Experimentos de Machine Learning |
-| **Trendz** | [http://localhost:8889](http://localhost:8889) | Analytics avançado |
+
 
 ##### 🔐 Login no ThingsBoard:
 - **Usuário**: `tenant@thingsboard.org`
