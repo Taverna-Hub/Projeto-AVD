@@ -292,6 +292,48 @@ Este script:
 
 ---
 
+### 📊 Importar e Visualizar Dashboards
+
+Agora vamos importar os dashboards pré-configurados e visualizar os dados no ThingsBoard:
+
+#### **9. Importar os dashboards no ThingsBoard**
+
+```bash
+python scripts/import_dashboards.py
+```
+
+Este script importa automaticamente todos os dashboards disponíveis na pasta `dashboard/` para o ThingsBoard.
+
+---
+
+#### **10. Acessar os dashboards**
+
+1. Abra seu navegador
+2. Acesse: [http://localhost:9090](http://localhost:9090)
+3. Faça login com as credenciais:
+   - **Usuário**: `tenant@thingsboard.org`
+   - **Senha**: `tenant`
+4. No menu lateral, clique em **Dashboards**
+5. Selecione o dashboard desejado para visualizar os dados
+
+---
+
+#### **⚠️ Solução de Problemas nos Dashboards**
+
+Se os dados **não aparecerem** nos widgets do dashboard, provavelmente é um **erro de conflito nos IDs dos devices**. Para corrigir:
+
+1. **Abra o dashboard** que está sem dados
+2. Clique no botão **Editar** (ícone de lápis no canto inferior direito)
+3. **Clique no widget** que está sem dados
+4. No painel de configuração que abrir, clique em **Editar widget**
+5. Na aba **Fonte de dados** (ou **Entity**), clique no device atual
+6. **Selecione o device correto** que corresponde ao widget (ex: se é um widget de temperatura de PETROLINA, selecione o device "PETROLINA" ou "PETROLINA_PROCESSADO")
+7. Clique em **Aplicar** e depois em **Salvar** o dashboard
+
+> 💡 **Nota**: Os devices com sufixo `- Processado` contêm os dados tratados e imputados. Use estes nos dashboards de cima e os sem o sufixo nos dashboard de baixo.
+
+---
+
 ### ✅ Resumo da Ordem de Execução
 
 | Etapa | Comando | O que faz |
@@ -304,6 +346,8 @@ Este script:
 | 6 | Executar `02_imputacao_dados.ipynb` | Imputar dados + MLflow |
 | 7 | `python fastapi/scripts/create_processed_devices.py` | Cria devices processados |
 | 8 | `python fastapi/scripts/send_telemetry_to_devices.py` | Popula devices processados |
+| 9 | `python scripts/import_dashboards.py` | Importa dashboards |
+| 10 | Acessar `localhost:9090` | Visualizar dashboards |
 
 ---
 
